@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retail Intelligence</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --surface2: #f0f3f8;
+  --surface3: #e4e9f2;
+  --border: rgba(30,60,120,0.08);
+  --border2: rgba(30,60,120,0.18);
+  --accent: #1e5ef5;
+  --accent-dim: rgba(30,94,245,0.07);
+  --accent2: #0ea5e9;
+  --accent3: #f59e0b;
+  --danger: #ef4444;
+  --danger-dim: rgba(239,68,68,0.08);
+  --success: #10b981;
+  --text: #0f1729;
+  --text2: #4a5578;
+  --muted: #94a3b8;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-track { background:var(--surface); }
+::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:3px; }
+
+header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 32px; height:60px;
+  background:var(--surface); border-bottom:1px solid var(--border);
+  position:sticky; top:0; z-index:200;
+}
+.logo { display:flex; align-items:center; gap:10px; }
+.logo-icon { width:28px; height:28px; background:var(--accent); border-radius:6px; display:flex; align-items:center; justify-content:center; }
+.logo-icon svg { width:16px; height:16px; }
+.logo-name { font-size:15px; font-weight:700; letter-spacing:0.04em; }
+.logo-sub { font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:0.1em; margin-top:1px; }
+.header-status { display:flex; align-items:center; gap:8px; }
+.dot { width:7px; height:7px; border-radius:50%; background:var(--success); box-shadow:0 0 8px var(--success); animation:blink 2.5s ease infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.status-label { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--muted); }
+
+nav { display:flex; align-items:center; gap:2px; padding:0 32px; background:var(--surface); border-bottom:1px solid var(--border); overflow-x:auto; }
+.tab { padding:14px 20px; font-size:12px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; color:var(--muted); border-bottom:2px solid transparent; transition:all 0.2s; white-space:nowrap; }
+.tab:hover { color:var(--text2); }
+.tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+
+.filter-bar { display:flex; align-items:center; gap:10px; padding:12px 32px; background:var(--surface); border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.filter-group { display:flex; align-items:center; gap:8px; }
+.filter-label { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; }
+select {
+  background:var(--surface2); border:1px solid var(--border2); color:var(--text);
+  padding:7px 28px 7px 12px; border-radius:6px; font-family:'IBM Plex Mono',monospace; font-size:11px;
+  cursor:pointer; outline:none; transition:border-color 0.2s; min-width:150px; appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2355556a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 10px center;
+}
+select:focus { border-color:var(--accent); }
+.btn { padding:7px 16px; border-radius:6px; border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-size:11px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; transition:all 0.2s; }
+.btn-primary { background:var(--accent); color:#0c0c10; }
+.btn-primary:hover { background:#1a4fd8; }
+.btn-ghost { background:var(--surface2); color:var(--text2); border:1px solid var(--border2); }
+.btn-ghost:hover { border-color:var(--accent); color:var(--accent); }
+.btn-danger { background:var(--danger-dim); color:var(--danger); border:1px solid rgba(245,66,99,0.2); font-size:10px; padding:4px 10px; }
+.btn-danger:hover { background:rgba(245,66,99,0.2); }
+
+main { padding:28px 32px; max-width:1600px; margin:0 auto; }
+.page { display:none; }
+.page.active { display:block; }
+
+.kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:28px; }
+.kpi-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:22px 24px; position:relative; overflow:hidden; transition:all 0.2s; box-shadow:0 1px 4px rgba(30,60,120,0.06); }
+.kpi-card:hover { border-color:var(--accent); box-shadow:0 4px 16px rgba(30,94,245,0.1); transform:translateY(-1px); }
+.kpi-label { font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:10px; }
+.kpi-value { font-size:22px; font-weight:800; letter-spacing:-0.02em; line-height:1; }
+.kpi-sub { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text2); margin-top:6px; }
+.kpi-badge { display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:4px; font-size:10px; font-weight:600; margin-top:8px; }
+.badge-up { background:rgba(16,185,129,0.1); color:var(--success); }
+.badge-down { background:var(--danger-dim); color:var(--danger); }
+
+.chart-grid { display:grid; gap:16px; margin-bottom:28px; }
+.chart-grid-2 { grid-template-columns:1fr 1fr; }
+.chart-grid-3 { grid-template-columns:2fr 1fr; }
+.chart-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:24px; box-shadow:0 1px 4px rgba(30,60,120,0.06); }
+.chart-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+.chart-title { font-size:13px; font-weight:700; letter-spacing:0.02em; }
+.chart-sub { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--muted); margin-top:3px; }
+.chart-wrap canvas { max-height:280px; }
+
+.table-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:28px; box-shadow:0 1px 4px rgba(30,60,120,0.06); }
+.table-header { display:flex; align-items:center; justify-content:space-between; padding:18px 22px; border-bottom:1px solid var(--border); }
+table { width:100%; border-collapse:collapse; }
+thead th { padding:12px 16px; text-align:left; font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:0.12em; text-transform:uppercase; border-bottom:1px solid var(--border); background:var(--surface); }
+tbody tr { border-bottom:1px solid var(--border); transition:background 0.15s; }
+tbody tr:last-child { border-bottom:none; }
+tbody tr:hover { background:var(--accent-dim); }
+tbody td { padding:12px 16px; font-size:12px; font-family:'IBM Plex Mono',monospace; }
+.td-num { text-align:right; }
+
+.progress-wrap { display:flex; align-items:center; gap:10px; }
+.progress-bar-bg { flex:1; height:4px; background:var(--surface3); border-radius:2px; overflow:hidden; min-width:60px; }
+.progress-bar-fill { height:100%; border-radius:2px; transition:width 0.5s ease; }
+.progress-pct { font-family:'IBM Plex Mono',monospace; font-size:10px; width:38px; text-align:right; }
+
+.vs-target { display:inline-flex; align-items:center; gap:4px; padding:2px 7px; border-radius:4px; font-size:10px; font-weight:600; }
+.vs-above { background:rgba(16,185,129,0.1); color:var(--success); }
+.vs-below { background:var(--danger-dim); color:var(--danger); }
+.vs-none { background:var(--surface3); color:var(--muted); font-size:9px; }
+
+.ai-wrap { max-width:860px; }
+.ai-context { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 22px; margin-bottom:20px; }
+.ai-context-title { font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:10px; }
+.ai-chips { display:flex; flex-wrap:wrap; gap:8px; }
+.ai-chip { padding:6px 14px; border-radius:20px; font-size:11px; font-weight:600; background:var(--surface2); border:1px solid var(--border2); cursor:pointer; transition:all 0.2s; color:var(--text2); }
+.ai-chip:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
+.ai-input-wrap { background:var(--surface); border:1px solid var(--border2); border-radius:12px; overflow:hidden; margin-bottom:20px; display:flex; align-items:center; transition:border-color 0.2s; }
+.ai-input-wrap:focus-within { border-color:var(--accent); }
+.ai-input { flex:1; padding:16px 20px; background:transparent; border:none; color:var(--text); font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; outline:none; }
+.ai-input::placeholder { color:var(--muted); }
+.ai-send { padding:12px 20px; background:var(--accent); border:none; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#fff; transition:background 0.2s; white-space:nowrap; }
+.ai-send:hover { background:#1a4fd8; }
+.ai-send:disabled { background:var(--surface3); color:var(--muted); cursor:not-allowed; }
+.ai-response { background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:0 12px 12px 0; padding:20px 24px; margin-bottom:16px; animation:fadeIn 0.3s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+.ai-response-label { font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--accent); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:10px; }
+.ai-response-text { font-size:14px; line-height:1.7; color:var(--text); white-space:pre-wrap; }
+.ai-history-title { font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:12px; margin-top:28px; }
+.ai-history-item { border-bottom:1px solid var(--border); padding:14px 0; }
+.ai-history-q { font-size:12px; color:var(--text2); margin-bottom:6px; font-family:'IBM Plex Mono',monospace; }
+.ai-history-a { font-size:12px; color:var(--text); line-height:1.6; }
+
+.targets-layout { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.targets-form { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:24px; }
+.form-title { font-size:14px; font-weight:700; margin-bottom:20px; }
+.form-group { margin-bottom:16px; }
+.form-label { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:6px; display:block; }
+.form-input { width:100%; padding:10px 14px; background:var(--surface2); border:1px solid var(--border2); color:var(--text); border-radius:8px; font-family:'IBM Plex Mono',monospace; font-size:13px; outline:none; transition:border-color 0.2s; }
+.form-input:focus { border-color:var(--accent); }
+.form-input::placeholder { color:var(--muted); }
+.form-actions { display:flex; gap:10px; margin-top:20px; }
+.form-msg { font-family:'IBM Plex Mono',monospace; font-size:11px; margin-top:12px; padding:10px 14px; border-radius:6px; }
+.form-msg.success { background:rgba(200,245,66,0.1); color:var(--accent); }
+.form-msg.error { background:var(--danger-dim); color:var(--danger); }
+.targets-table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+.targets-table-head { padding:18px 22px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+
+.empty { text-align:center; padding:48px 20px; color:var(--muted); }
+.empty-icon { font-size:28px; margin-bottom:10px; }
+.empty-text { font-size:12px; font-family:'IBM Plex Mono',monospace; }
+
+@media (max-width:768px) {
+  header, .filter-bar, nav, main { padding-left:16px; padding-right:16px; }
+  .chart-grid-2, .chart-grid-3, .targets-layout { grid-template-columns:1fr; }
+  .kpi-grid { grid-template-columns:1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="8" width="3" height="7" rx="1" fill="#0c0c10"/><rect x="6" y="5" width="3" height="10" rx="1" fill="#0c0c10"/><rect x="11" y="1" width="3" height="14" rx="1" fill="#0c0c10"/></svg>
+    </div>
+    <div>
+      <div class="logo-name">Retail Intelligence</div>
+      <div class="logo-sub">Motherswork · Singapore</div>
+    </div>
+  </div>
+  <div class="header-status">
+    <div class="dot"></div>
+    <span class="status-label" id="statusLabel">Connecting...</span>
+  </div>
+</header>
+
+<nav>
+  <div class="tab active" onclick="switchTab('overview',this)">Overview</div>
+  <div class="tab" onclick="switchTab('channels',this)">Channels</div>
+  <div class="tab" onclick="switchTab('brands',this)">Brands</div>
+  <div class="tab" onclick="switchTab('products',this)">Products</div>
+  <div class="tab" onclick="switchTab('ai',this)">AI Q&amp;A</div>
+  <div class="tab" onclick="switchTab('targets',this)">Targets</div>
+</nav>
+
+<div class="filter-bar">
+  <div class="filter-group"><span class="filter-label">Month</span>
+    <select id="fMonth" onchange="applyFilters()"><option value="">All Months</option></select></div>
+  <div class="filter-group"><span class="filter-label">Channel</span>
+    <select id="fChannelGroup" onchange="onChannelGroupChange()">
+      <option value="">All Channels</option>
+      <option value="Offline">Offline</option>
+      <option value="Online">Online</option>
+      <option value="Wholesale">Wholesale</option>
+    </select></div>
+  <div class="filter-group"><span class="filter-label">Store</span>
+    <select id="fChannel" onchange="applyFilters()"><option value="">All Stores</option></select></div>
+  <div class="filter-group"><span class="filter-label">Brand</span>
+    <div style="position:relative;">
+      <input id="fBrandSearch" placeholder="Search brand..." autocomplete="off"
+        style="background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:7px 12px;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;outline:none;width:180px;transition:border-color 0.2s;"
+        onfocus="showBrandDropdown()" oninput="filterBrandDropdown()" onblur="setTimeout(hideBrandDropdown,200)">
+      <div id="brandDropdown" style="display:none;position:absolute;top:34px;left:0;width:220px;max-height:240px;overflow-y:auto;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+        <div id="brandDropdownList"></div>
+      </div>
+    </div>
+    <input type="hidden" id="fBrand">
+  </div>
+  <button class="btn btn-ghost" onclick="resetFilters()">Reset</button>
+</div>
+
+<main>
+
+  <div id="page-overview" class="page active">
+    <div class="kpi-grid" id="kpiGrid">
+      <div class="kpi-card"><div class="kpi-label">Revenue</div><div class="kpi-value" style="color:var(--muted)">Loading...</div></div>
+      <div class="kpi-card"><div class="kpi-label">Net Revenue</div><div class="kpi-value" style="color:var(--muted)">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">Margin</div><div class="kpi-value" style="color:var(--muted)">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">Units</div><div class="kpi-value" style="color:var(--muted)">—</div></div>
+    </div>
+
+    <!-- MoM Revenue vs Target Table -->
+    <div class="table-card" style="margin-bottom:20px;">
+      <div class="table-header">
+        <div>
+          <div class="chart-title">MoM Total Revenue vs Target</div>
+          <div class="chart-sub">All months · Achievement %</div>
+        </div>
+      </div>
+      <div style="overflow-x:auto;"><table>
+        <thead><tr>
+          <th>Month</th>
+          <th class="td-num">Revenue (SGD)</th>
+          <th class="td-num">Target (SGD)</th>
+          <th class="td-num">Achievement %</th>
+        </tr></thead>
+        <tbody id="momTableBody"></tbody>
+      </table></div>
+    </div>
+
+    <!-- Channel / Store breakdown table -->
+    <div class="table-card" style="margin-bottom:28px;">
+      <div class="table-header">
+        <div>
+          <div class="chart-title" id="overviewBreakdownTitle">Channel Revenue vs Target</div>
+          <div class="chart-sub" id="overviewBreakdownSub">Filtered to selected month</div>
+        </div>
+        <div style="display:flex;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;overflow:hidden;">
+          <button id="ovToggleChannel" onclick="setOverviewView('channel')" style="padding:6px 16px;border:none;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;background:var(--accent);color:#0c0c10;transition:all 0.2s;">Channel</button>
+          <button id="ovToggleStore" onclick="setOverviewView('store')" style="padding:6px 16px;border:none;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;background:transparent;color:var(--muted);transition:all 0.2s;">Store</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;"><table>
+        <thead><tr>
+          <th id="ovBreakdownColHeader">Channel</th>
+          <th class="td-num">Revenue (SGD)</th>
+          <th class="td-num">Target (SGD)</th>
+          <th class="td-num">Achievement %</th>
+        </tr></thead>
+        <tbody id="overviewBreakdownBody"></tbody>
+      </table></div>
+    </div>
+
+    <div class="chart-grid chart-grid-3">
+      <div class="chart-card">
+        <div class="chart-header"><div><div class="chart-title">Monthly Revenue</div><div class="chart-sub">vs Target</div></div></div>
+        <div class="chart-wrap"><canvas id="chartMonthly"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header"><div><div class="chart-title">Channel Mix</div><div class="chart-sub">Revenue share</div></div></div>
+        <div class="chart-wrap"><canvas id="chartChannelMix"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-channels" class="page">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;">View by</span>
+      <div style="display:flex;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;overflow:hidden;">
+        <button id="toggleStore" onclick="setChannelView('store')" style="padding:7px 18px;border:none;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;background:var(--accent);color:#0c0c10;transition:all 0.2s;">Store</button>
+        <button id="toggleChannel" onclick="setChannelView('channel')" style="padding:7px 18px;border:none;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;background:transparent;color:var(--muted);transition:all 0.2s;">Channel Group</button>
+      </div>
+    </div>
+    <div class="chart-card" style="margin-bottom:20px;">
+      <div class="chart-header"><div><div class="chart-title" id="channelChartTitle">Revenue by Store</div></div></div>
+      <div class="chart-wrap"><canvas id="chartChannels"></canvas></div>
+    </div>
+    <div class="table-card" style="margin-bottom:20px;">
+      <div class="table-header"><div class="chart-title" id="channelTableTitle">Store Breakdown</div></div>
+      <div style="overflow-x:auto;"><table>
+        <thead><tr><th id="channelColHeader">Store</th><th class="td-num">Net Revenue</th><th class="td-num">Qty</th><th class="td-num">Margin %</th><th class="td-num">MoM %</th><th class="td-num">YoY %</th><th class="td-num">Target</th><th class="td-num">Attainment</th></tr></thead>
+        <tbody id="channelTableBody"></tbody>
+      </table></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header"><div><div class="chart-title">Year-over-Year Revenue</div><div class="chart-sub">Monthly comparison</div></div></div>
+      <div class="chart-wrap"><canvas id="chartYoyChannel" style="max-height:360px;"></canvas></div>
+    </div>
+  </div>
+
+  <div id="page-brands" class="page">
+    <!-- Top 15 bar chart -->
+    <div class="chart-card" style="margin-bottom:20px;">
+      <div class="chart-header"><div><div class="chart-title">Top 15 Brands by Revenue</div></div></div>
+      <div class="chart-wrap"><canvas id="chartBrands" style="max-height:360px;"></canvas></div>
+    </div>
+
+    <!-- MoM stacked bar chart by channel -->
+    <div class="chart-card" style="margin-bottom:20px;">
+      <div class="chart-header">
+        <div><div class="chart-title">MoM Revenue by Channel</div><div class="chart-sub">Last 24 months · filtered by selected brand</div></div>
+      </div>
+      <div class="chart-wrap"><canvas id="chartBrandMoM" style="max-height:320px;"></canvas></div>
+    </div>
+
+    <!-- Brand table with cumulative revenue -->
+    <div class="table-card">
+      <div class="table-header"><div class="chart-title">All Brands</div><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);">Sorted by revenue · cumulative share</div></div>
+      <div style="overflow-x:auto;"><table>
+        <thead><tr>
+          <th>#</th>
+          <th>Brand</th>
+          <th class="td-num">Net Revenue</th>
+          <th class="td-num">Cumulative %</th>
+          <th class="td-num">Qty</th>
+          <th class="td-num">Margin %</th>
+          <th class="td-num">Avg Price</th>
+        </tr></thead>
+        <tbody id="brandTableBody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <div id="page-products" class="page">
+    <div class="table-card">
+      <div class="table-header"><div class="chart-title">Top 50 Products by Revenue</div></div>
+      <div style="overflow-x:auto;"><table>
+        <thead><tr><th>#</th><th>Product</th><th>Brand</th><th class="td-num">Revenue</th><th class="td-num">Qty</th><th class="td-num">Avg Price</th><th class="td-num">Margin %</th></tr></thead>
+        <tbody id="productTableBody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+      <div class="chart-wrap"><canvas id="chartYoy" style="max-height:360px;"></canvas></div>
+    </div>
+  </div>
+
+  <div id="page-ai" class="page">
+    <div class="ai-wrap">
+      <div class="ai-context">
+        <div class="ai-context-title">Suggested Questions</div>
+        <div class="ai-chips" id="aiChips"></div>
+      </div>
+      <div class="ai-input-wrap">
+        <input class="ai-input" id="aiInput" placeholder="Ask anything about your sales data..." onkeydown="if(event.key==='Enter')sendAI()">
+        <button class="ai-send" id="aiSend" onclick="sendAI()">Ask Gemini</button>
+      </div>
+      <div id="aiResponseArea"></div>
+      <div id="aiHistoryWrap" style="display:none;">
+        <div class="ai-history-title">Previous Questions</div>
+        <div id="aiHistoryItems"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-targets" class="page">
+    <div class="targets-layout">
+      <div class="targets-form">
+        <div class="form-title">Set / Update Target</div>
+        <div class="form-group">
+          <label class="form-label">Year Month</label>
+          <input class="form-input" id="tMonth" placeholder="e.g. 2026-03" list="monthsList">
+          <datalist id="monthsList"></datalist>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Channel</label>
+          <select class="form-input" id="tChannel"><option value="">Select channel...</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Target (SGD)</label>
+          <input class="form-input" id="tAmount" type="number" placeholder="e.g. 150000">
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="saveTarget()">Save Target</button>
+          <button class="btn btn-ghost" onclick="clearTargetForm()">Clear</button>
+        </div>
+        <div class="form-msg" id="targetMsg" style="display:none;"></div>
+      </div>
+      <div class="targets-table-wrap">
+        <div class="targets-table-head">
+          <div class="chart-title">Saved Targets</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);" id="targetsCount"></div>
+        </div>
+        <div style="overflow-x:auto;"><table>
+          <thead><tr><th>Month</th><th>Channel</th><th class="td-num">Target (SGD)</th><th>Updated</th><th></th></tr></thead>
+          <tbody id="targetsTableBody"></tbody>
+        </table></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const API = 'https://retail-intelligence-api-kgt3f3f3uq-as.a.run.app';
+const MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// Store → Channel group mapping
+const STORE_TO_CHANNEL = {
+  'GWC Motherswork Baby & Kids': 'Offline',
+  'TM3 Motherswork Kids':        'Offline',
+  'TAK Takashimaya':             'Offline',
+  'OCK Orchard Tangs':           'Offline',
+  'VCT VivoCity Tangs':          'Offline',
+  'SGLAZ - Lazada':              'Online',
+  'SGSHP - Shopee':              'Online',
+  'SGISC - iShopChangi':         'Online',
+  'SGWEB - Website':             'Online',
+  'SGAMZ Amazon':                'Online',
+  'SGTTK -TikTok':               'Online',
+  'SGRMT - REDMART':             'Online',
+  'SGGMT Grab Mart':             'Online',
+  'HQS Mothers Work Pte Ltd':    'Wholesale',
+  'BBF Baby Fair':               'Offline',
+};
+
+const CHANNEL_COLORS = {
+  'Offline':   '#1e5ef5',
+  'Online':    '#14b8a6',
+  'Wholesale': '#f59e0b',
+};
+let meta = {months:[],sales_teams:[],brands:[]};
+let targets = [];
+let aiHistory = [];
+let charts = {};
+let currentTab = 'overview';
+let channelView = 'store'; // 'store' or 'channel'
+let overviewView = 'channel'; // 'channel' or 'store'
+
+const fmt = n => n==null?'—':new Intl.NumberFormat('en-SG',{maximumFractionDigits:0}).format(n);
+const fmtSGD = n => n==null?'—':'S$'+fmt(n);
+const fmtPct = n => n==null?'—': (Math.abs(n) > 999 ? '—' : Math.round(n)+'%');
+const filters = () => ({
+  year_month: document.getElementById('fMonth').value,
+  sales_team: document.getElementById('fChannel').value,
+  brand: document.getElementById('fBrand').value,
+});
+const qs = obj => Object.entries(obj).filter(([,v])=>v).map(([k,v])=>`${k}=${encodeURIComponent(v)}`).join('&');
+
+async function api(path) {
+  const r = await fetch(API+path);
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function apiPost(path,body) {
+  const r = await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function apiDelete(path) {
+  const r = await fetch(API+path,{method:'DELETE'});
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+function getTargetSum(year_month, sales_team) {
+  return targets.filter(t=>t.year_month===year_month&&(!sales_team||t.sales_team===sales_team)).reduce((s,t)=>s+t.target,0)||null;
+}
+function destroyChart(id) { if(charts[id]){charts[id].destroy();delete charts[id];} }
+
+async function init() {
+  try {
+    meta = await api('/api/meta');
+    document.getElementById('statusLabel').textContent = 'Live · BigQuery';
+
+    const fMonth=document.getElementById('fMonth');
+    meta.months.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;fMonth.appendChild(o);});
+    if(meta.months.length) fMonth.value=meta.months[meta.months.length-1];
+
+    const fChannel=document.getElementById('fChannel');
+    meta.sales_teams.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;fChannel.appendChild(o);});
+
+    const fBrand=document.getElementById('fBrandSearch');
+    populateBrandDropdown(meta.brands);
+
+    const tChannel=document.getElementById('tChannel');
+    meta.sales_teams.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;tChannel.appendChild(o);});
+
+    const monthsList=document.getElementById('monthsList');
+    meta.months.forEach(m=>{const o=document.createElement('option');o.value=m;monthsList.appendChild(o);});
+
+    await loadTargets();
+    await loadOverview();
+    renderAIChips();
+  } catch(e) {
+    document.getElementById('statusLabel').textContent='Error — check API';
+    console.error(e);
+  }
+}
+
+function switchTab(tab,el) {
+  currentTab=tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('page-'+tab).classList.add('active');
+  if(tab==='overview') loadOverview();
+  if(tab==='channels') loadChannels();
+  if(tab==='brands')   loadBrands();
+  if(tab==='products') loadProducts();
+
+  if(tab==='targets')  loadTargets();
+}
+
+function applyFilters() {
+  if(currentTab==='overview') loadOverview();
+  if(currentTab==='channels') loadChannels();
+  if(currentTab==='brands')   loadBrands();
+  if(currentTab==='products') loadProducts();
+}
+
+function onChannelGroupChange() {
+  const group = document.getElementById('fChannelGroup').value;
+  const storeSelect = document.getElementById('fChannel');
+  // Rebuild store dropdown filtered by selected channel group
+  storeSelect.innerHTML = '<option value="">All Stores</option>';
+  meta.sales_teams.forEach(s => {
+    if(!group || STORE_TO_CHANNEL[s] === group) {
+      const o = document.createElement('option'); o.value = s; o.textContent = s;
+      storeSelect.appendChild(o);
+    }
+  });
+  applyFilters();
+}
+
+function resetFilters() {
+  document.getElementById('fMonth').value = meta.months[meta.months.length-1]||'';
+  document.getElementById('fChannelGroup').value = '';
+  document.getElementById('fChannel').innerHTML = '<option value="">All Stores</option>';
+  meta.sales_teams.forEach(s => {
+    const o = document.createElement('option'); o.value = s; o.textContent = s;
+    document.getElementById('fChannel').appendChild(o);
+  });
+  document.getElementById('fBrand').value = '';
+  document.getElementById('fBrandSearch').value = '';
+  applyFilters();
+}
+
+function setOverviewView(view) {
+  overviewView = view;
+  document.getElementById('ovToggleChannel').style.background = view==='channel' ? 'var(--accent)' : 'transparent';
+  document.getElementById('ovToggleChannel').style.color = view==='channel' ? '#0c0c10' : 'var(--muted)';
+  document.getElementById('ovToggleStore').style.background = view==='store' ? 'var(--accent)' : 'transparent';
+  document.getElementById('ovToggleStore').style.color = view==='store' ? '#0c0c10' : 'var(--muted)';
+  document.getElementById('overviewBreakdownTitle').textContent = view==='channel' ? 'Channel Revenue vs Target' : 'Store Revenue vs Target';
+  document.getElementById('ovBreakdownColHeader').textContent = view==='channel' ? 'Channel' : 'Store';
+  const f = filters();
+  renderOverviewBreakdown(window._lastChannelData || [], f);
+}
+
+function renderMomTable(monthlyData) {
+  const tbody = document.getElementById('momTableBody');
+  if(!tbody) return;
+  // Only show 2026 months
+  const filtered = [...monthlyData].filter(d => d.year_month.startsWith('2026')).reverse();
+  const rows = filtered.map(d => {
+    const totalTarget = targets
+      .filter(t => t.year_month === d.year_month)
+      .reduce((s,t) => s + t.target, 0);
+    const att = totalTarget > 0 ? (d.total_revenue / totalTarget * 100) : null;
+    const attColor = att == null ? 'var(--muted)' : att >= 100 ? 'var(--accent)' : att >= 80 ? 'var(--accent3)' : 'var(--danger)';
+    return `<tr>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:12px;">${d.year_month}</td>
+      <td class="td-num">${fmtSGD(d.total_revenue)}</td>
+      <td class="td-num" style="color:var(--muted);">${totalTarget > 0 ? fmtSGD(totalTarget) : '—'}</td>
+      <td class="td-num" style="color:${attColor};font-weight:700;">${att != null ? Math.round(att)+'%' : '—'}</td>
+    </tr>`;
+  });
+  tbody.innerHTML = rows.join('') || '<tr><td colspan="4"><div class="empty"><div class="empty-text">No data</div></div></td></tr>';
+}
+
+function renderOverviewBreakdown(channelData, f) {
+  const tbody = document.getElementById('overviewBreakdownBody');
+  if(!tbody) return;
+
+  let displayData;
+  if(overviewView === 'channel') {
+    displayData = aggregateToChannels(channelData);
+  } else {
+    displayData = [...channelData].sort((a,b) => b.total_revenue - a.total_revenue);
+  }
+
+  if(!displayData.length) {
+    tbody.innerHTML = '<tr><td colspan="4"><div class="empty"><div class="empty-text">No data — select a month</div></div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = displayData.map(d => {
+    let tVal = null;
+    if(f.year_month) {
+      if(overviewView === 'channel') {
+        tVal = getChannelGroupTarget(f.year_month, d.sales_team);
+      } else {
+        const t = targets.find(t => t.year_month === f.year_month && t.sales_team === d.sales_team);
+        tVal = t ? t.target : null;
+      }
+    }
+    const att = tVal > 0 ? (d.total_revenue / tVal * 100) : null;
+    const attColor = att == null ? 'var(--muted)' : att >= 100 ? 'var(--accent)' : att >= 80 ? 'var(--accent3)' : 'var(--danger)';
+
+    // Channel group tag for store view
+    const chTag = overviewView === 'store'
+      ? `<span style="background:var(--surface3);padding:2px 7px;border-radius:4px;font-size:9px;margin-left:8px;color:var(--muted);">${STORE_TO_CHANNEL[d.sales_team]||''}</span>`
+      : '';
+
+    return `<tr>
+      <td>${d.sales_team}${chTag}</td>
+      <td class="td-num">${fmtSGD(d.total_revenue)}</td>
+      <td class="td-num" style="color:var(--muted);">${tVal > 0 ? fmtSGD(tVal) : '—'}</td>
+      <td class="td-num" style="color:${attColor};font-weight:700;">${att != null ? Math.round(att)+'%' : '—'}</td>
+    </tr>`;
+  }).join('');
+
+  // Update sub label
+  const sub = document.getElementById('overviewBreakdownSub');
+  if(sub) sub.textContent = f.year_month ? `Month: ${f.year_month}` : 'Select a month to see targets';
+}
+
+// OVERVIEW
+async function loadOverview() {
+  const f=filters();
+  try {
+    const [ov,monthly,byChannel]=await Promise.all([
+      api('/api/overview?'+qs(f)),
+      api('/api/revenue/monthly?'+qs({sales_team:f.sales_team,brand:f.brand})),
+      api('/api/revenue/by-channel?'+qs({year_month:f.year_month,brand:f.brand})),
+    ]);
+    renderKPIs(ov,f);
+    renderMomTable(monthly);
+    window._lastChannelData = byChannel;
+    renderOverviewBreakdown(byChannel, f);
+    renderMonthlyChart(monthly,f);
+    renderChannelMixChart(byChannel);
+  } catch(e){console.error(e);}
+}
+
+function renderKPIs(d,f) {
+  const totalTarget=f.year_month?getTargetSum(f.year_month,f.sales_team):null;
+  const att=totalTarget&&d.total_revenue?(d.total_revenue/totalTarget*100).toFixed(1):null;
+  const mc=d.gross_margin_pct>40?'var(--accent)':d.gross_margin_pct>25?'var(--accent3)':'var(--danger)';
+  document.getElementById('kpiGrid').innerHTML=`
+    <div class="kpi-card" id="ytdCard">
+      <div class="kpi-label">YTD Revenue</div>
+      <div class="kpi-value" style="color:var(--muted)">Loading...</div>
+      <div class="kpi-sub">vs YTD Target</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Month Revenue</div>
+      <div class="kpi-value">${fmtSGD(d.total_revenue)}</div>
+      ${totalTarget?`<div class="kpi-sub">Target: ${fmtSGD(totalTarget)}</div><span class="kpi-badge ${att>=100?'badge-up':'badge-down'}">${att}% attainment</span>`:'<div class="kpi-sub">No target set</div>'}
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Gross Margin</div>
+      <div class="kpi-value" style="color:${mc}">${fmtPct(d.gross_margin_pct)}</div>
+      <div class="kpi-sub">Revenue vs Cost</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Units Sold</div>
+      <div class="kpi-value">${fmt(d.total_qty)}</div>
+      <div class="kpi-sub">${fmt(d.transaction_count)} transactions</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Active Brands</div>
+      <div class="kpi-value">${fmt(d.brand_count)}</div>
+      <div class="kpi-sub">${fmt(d.channel_count)} channels</div>
+    </div>`;
+
+  // Load YTD async
+  loadYTD(f);
+}
+
+async function loadYTD(f) {
+  try {
+    // Get the year from selected month, default to current year
+    const year = f.year_month ? f.year_month.substring(0,4) : new Date().getFullYear().toString();
+    const data = await api('/api/revenue/monthly?' + qs({sales_team: f.sales_team, brand: f.brand}));
+
+    // Sum all months in the same year up to and including selected month
+    const ytdMonths = data.filter(d => {
+      if(!d.year_month.startsWith(year)) return false;
+      if(f.year_month) return d.year_month <= f.year_month;
+      return true;
+    });
+
+    const ytdRevenue = ytdMonths.reduce((s,d) => s + (d.total_revenue||0), 0);
+
+    // Sum targets for same months
+    const ytdTarget = ytdMonths.reduce((s,d) => {
+      const t = targets.filter(t => t.year_month === d.year_month && (!f.sales_team || t.sales_team === f.sales_team))
+                       .reduce((ts,t) => ts + t.target, 0);
+      return s + t;
+    }, 0);
+
+    const att = ytdTarget > 0 ? (ytdRevenue / ytdTarget * 100).toFixed(1) : null;
+    const mc = att >= 100 ? 'var(--accent)' : att >= 80 ? 'var(--accent3)' : 'var(--danger)';
+
+    const card = document.getElementById('ytdCard');
+    if(card) card.innerHTML = `
+      <div class="kpi-label">YTD Revenue ${year}</div>
+      <div class="kpi-value">${fmtSGD(Math.round(ytdRevenue))}</div>
+      ${ytdTarget > 0
+        ? `<div class="kpi-sub">Target: ${fmtSGD(Math.round(ytdTarget))}</div>
+           <span class="kpi-badge ${att>=100?'badge-up':'badge-down'}" style="color:${mc}">${att}% attainment</span>`
+        : '<div class="kpi-sub">No targets set</div>'}`;
+  } catch(e) { console.error(e); }
+}
+
+function renderMonthlyChart(data,f) {
+  destroyChart('monthly');
+  const ctx=document.getElementById('chartMonthly').getContext('2d');
+  // Last 24 months only
+  const last24 = data.slice(-24);
+  const labels=last24.map(d=>d.year_month);
+  const revenue=last24.map(d=>d.total_revenue);
+  const targetLine=labels.map(m=>{const t=getTargetSum(m,f.sales_team);return t||null;});
+  charts['monthly']=new Chart(ctx,{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'Revenue',data:revenue,backgroundColor:'rgba(30,94,245,0.75)',borderColor:'#1e5ef5',borderWidth:0,borderRadius:4},
+      {label:'Target',data:targetLine,type:'line',borderColor:'#ef4444',borderWidth:2,borderDash:[6,3],pointBackgroundColor:'#ef4444',pointRadius:3,fill:false,tension:0.3}
+    ]},
+    options:chartOpts()
+  });
+}
+
+function renderChannelMixChart(data) {
+  destroyChart('channelMix');
+  const ctx=document.getElementById('chartChannelMix').getContext('2d');
+  const colors=['#1e5ef5','#0ea5e9','#14b8a6','#f59e0b','#ef4444','#8b5cf6','#ec4899','#84cc16','#06b6d4','#f97316'];
+  const total = data.reduce((s,d) => s + (d.total_revenue||0), 0);
+  charts['channelMix']=new Chart(ctx,{
+    type:'doughnut',
+    data:{labels:data.map(d=>d.sales_team),datasets:[{data:data.map(d=>d.total_revenue),backgroundColor:colors,borderWidth:0,hoverOffset:6}]},
+    options:{
+      responsive:true,maintainAspectRatio:true,
+      plugins:{
+        legend:{position:'right',labels:{color:'#4a5578',font:{size:10,family:'DM Mono'},boxWidth:10,padding:12}},
+        tooltip:{callbacks:{
+          label: ctx => {
+            const pct = total > 0 ? (ctx.raw / total * 100).toFixed(1) : 0;
+            return ` ${pct}%  (S$${fmt(ctx.raw)})`;
+          }
+        }}
+      }
+    }
+  });
+}
+
+function setChannelView(view) {
+  channelView = view;
+  document.getElementById('toggleStore').style.background = view==='store' ? 'var(--accent)' : 'transparent';
+  document.getElementById('toggleStore').style.color = view==='store' ? '#0c0c10' : 'var(--muted)';
+  document.getElementById('toggleChannel').style.background = view==='channel' ? 'var(--accent)' : 'transparent';
+  document.getElementById('toggleChannel').style.color = view==='channel' ? '#0c0c10' : 'var(--muted)';
+  document.getElementById('channelChartTitle').textContent = view==='store' ? 'Revenue by Store' : 'Revenue by Channel Group';
+  document.getElementById('channelTableTitle').textContent = view==='store' ? 'Store Breakdown' : 'Channel Group Breakdown';
+  document.getElementById('channelColHeader').textContent = view==='store' ? 'Store' : 'Channel';
+  loadChannels();
+}
+function aggregateToChannels(data) {
+  const map = {};
+  data.forEach(d => {
+    const ch = STORE_TO_CHANNEL[d.sales_team] || 'Other';
+    if (!map[ch]) map[ch] = {sales_team: ch, total_revenue:0, total_net_revenue:0, total_qty:0, total_cost:0, transaction_count:0};
+    map[ch].total_revenue     += d.total_revenue     || 0;
+    map[ch].total_net_revenue += d.total_net_revenue || 0;
+    map[ch].total_qty         += d.total_qty         || 0;
+    map[ch].total_cost        += d.total_cost        || 0;
+    map[ch].transaction_count += d.transaction_count || 0;
+  });
+  return Object.values(map)
+    .map(d => ({...d,
+      gross_margin_pct: d.total_revenue > 0 ? ((d.total_revenue - d.total_cost) / d.total_revenue * 100) : null
+    }))
+    .sort((a,b) => b.total_revenue - a.total_revenue);
+}
+
+// Sum targets for a channel group
+function getChannelGroupTarget(year_month, channelGroup) {
+  return targets
+    .filter(t => t.year_month === year_month && STORE_TO_CHANNEL[t.sales_team] === channelGroup)
+    .reduce((s,t) => s + t.target, 0) || null;
+}
+
+// CHANNELS
+async function loadChannels() {
+  const f=filters();
+  // Calculate previous month
+  let prevMonth = null;
+  if(f.year_month) {
+    const [yr, mo] = f.year_month.split('-');
+    const d = new Date(parseInt(yr), parseInt(mo)-2, 1);
+    prevMonth = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  }
+  try {
+    const [data, prevData, yoyData]=await Promise.all([
+      api('/api/revenue/by-channel?'+qs({year_month:f.year_month,brand:f.brand})),
+      prevMonth ? api('/api/revenue/by-channel?'+qs({year_month:prevMonth,brand:f.brand})) : Promise.resolve([]),
+      api('/api/revenue/yoy?'+qs({brand:f.brand})),
+    ]);
+    const displayData = channelView === 'channel' ? aggregateToChannels(data) : data;
+    const prevDisplayData = channelView === 'channel' ? aggregateToChannels(prevData) : prevData;
+    renderChannelChart(displayData);
+    renderChannelTable(displayData, f, yoyData, prevDisplayData);
+    renderYoyChartInChannel(yoyData);
+  } catch(e){console.error(e);}
+}
+
+function renderYoyChartInChannel(data) {
+  destroyChart('yoyChannel');
+  const ctx=document.getElementById('chartYoyChannel').getContext('2d');
+  // Aggregate by year+month (sum across all stores for the line chart)
+  const byYearMonth = {};
+  data.forEach(d => {
+    if(!byYearMonth[d.year_month]) byYearMonth[d.year_month] = {year:d.year, month:d.month, total_revenue:0};
+    byYearMonth[d.year_month].total_revenue += d.total_revenue||0;
+  });
+  const byYear = {};
+  Object.values(byYearMonth).forEach(d => {
+    if(!byYear[d.year]) byYear[d.year] = new Array(12).fill(null);
+    byYear[d.year][d.month-1] = d.total_revenue;
+  });
+  const colors={2023:'#cbd5e1',2024:'#0ea5e9',2025:'#14b8a6',2026:'#1e5ef5'};
+  charts['yoyChannel']=new Chart(ctx,{
+    type:'line',
+    data:{labels:MN,datasets:Object.entries(byYear).map(([yr,vals])=>({label:yr,data:vals,borderColor:colors[yr]||'#888',backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:0.3,pointBackgroundColor:colors[yr]||'#888'}))},
+    options:{...chartOpts(),plugins:{...chartOpts().plugins,legend:{display:true,labels:{color:'#4a5578',font:{size:10,family:'DM Mono'},boxWidth:20,padding:16}}}}
+  });
+}
+
+function renderChannelChart(data) {
+  destroyChart('channels');
+  const ctx=document.getElementById('chartChannels').getContext('2d');
+  const colors = channelView === 'channel'
+    ? data.map(d => CHANNEL_COLORS[d.sales_team] || '#888')
+    : data.map(d => { const ch = STORE_TO_CHANNEL[d.sales_team]; return ch ? (CHANNEL_COLORS[ch]+'cc') : '#94a3b8'; });
+  // Filter out negative/zero revenue stores for cleaner chart
+  const chartData = data.filter(d => d.total_revenue > 0);
+  const chartColors = channelView === 'channel'
+    ? chartData.map(d => CHANNEL_COLORS[d.sales_team] || '#888')
+    : chartData.map(d => { const ch = STORE_TO_CHANNEL[d.sales_team]; return ch ? (CHANNEL_COLORS[ch]+'cc') : '#94a3b8'; });
+  charts['channels']=new Chart(ctx,{type:'bar',data:{labels:chartData.map(d=>d.sales_team),datasets:[{label:'Revenue',data:chartData.map(d=>d.total_revenue),backgroundColor:chartColors,borderWidth:0,borderRadius:4}]},options:{
+    ...chartOpts(),
+    indexAxis:'y',
+    scales:{
+      x:{min:0,grid:{color:'rgba(30,60,120,0.06)'},ticks:{color:'#94a3b8',font:{family:'IBM Plex Mono',size:9},callback:v=>'S$'+(v>=1000000?(v/1000000).toFixed(1)+'M':v>=1000?(v/1000).toFixed(0)+'K':v)}},
+      y:{grid:{color:'rgba(30,60,120,0.06)'},ticks:{color:'#0f1729',font:{family:'IBM Plex Mono',size:10},crossAlign:'far'}}
+    }
+  }});
+}
+
+function renderChannelTable(data, f, yoyData=[], prevData=[]) {
+  const tbody=document.getElementById('channelTableBody');
+  if(!data.length){tbody.innerHTML='<tr><td colspan="7"><div class="empty"><div class="empty-icon">📊</div><div class="empty-text">No data</div></div></td></tr>';return;}
+
+  // YoY lookup
+  const yoyLookup = {};
+  if(f.year_month && yoyData.length) {
+    const [yr, mo] = f.year_month.split('-');
+    const prevYearMonth = `${parseInt(yr)-1}-${mo}`;
+    yoyData.filter(d => d.year_month === prevYearMonth).forEach(d => {
+      yoyLookup[d.sales_team] = (yoyLookup[d.sales_team]||0) + (d.total_revenue||0);
+    });
+  }
+
+  // MoM lookup
+  const momLookup = {};
+  prevData.forEach(d => { momLookup[d.sales_team] = d.total_revenue||0; });
+
+  tbody.innerHTML=data.map(d=>{
+    // Target & attainment
+    let tVal = null;
+    if(f.year_month) {
+      tVal = channelView === 'channel'
+        ? getChannelGroupTarget(f.year_month, d.sales_team)
+        : (targets.find(t=>t.year_month===f.year_month&&t.sales_team===d.sales_team)||{}).target || null;
+    }
+    const att = tVal ? (d.total_revenue/tVal*100) : null;
+    const barW = att ? Math.min(att,150) : 0;
+    const barC = att>=100?'var(--accent)':att>=80?'var(--accent3)':'var(--danger)';
+
+    // MoM
+    const prevRev = momLookup[d.sales_team] || null;
+    const momPct = (prevRev && Math.abs(prevRev) > 1000 && d.total_revenue != null) ? ((d.total_revenue - prevRev) / prevRev * 100) : null;
+    const momColor = momPct == null ? 'var(--muted)' : momPct >= 0 ? 'var(--accent)' : 'var(--danger)';
+    const momStr = momPct == null ? '—' : `${momPct >= 0 ? '▲' : '▼'} ${Math.round(Math.abs(momPct))}%`;
+
+    // YoY
+    let yoyPrevRev = null;
+    if(channelView === 'channel') {
+      yoyPrevRev = Object.entries(yoyLookup).filter(([s]) => STORE_TO_CHANNEL[s] === d.sales_team).reduce((s,[,v])=>s+v,0)||null;
+    } else {
+      yoyPrevRev = yoyLookup[d.sales_team]||null;
+    }
+    const yoyPct = yoyPrevRev && d.total_revenue ? ((d.total_revenue - yoyPrevRev) / yoyPrevRev * 100) : null;
+    const yoyColor = yoyPct == null ? 'var(--muted)' : yoyPct >= 0 ? 'var(--accent)' : 'var(--danger)';
+    const yoyStr = yoyPct == null ? '—' : `${yoyPct >= 0 ? '▲' : '▼'} ${Math.abs(yoyPct).toFixed(1)}%`;
+
+    const chTag = channelView === 'store'
+      ? `<span style="background:var(--surface3);padding:2px 7px;border-radius:4px;font-size:9px;margin-left:8px;color:var(--muted);">${STORE_TO_CHANNEL[d.sales_team]||''}</span>`
+      : '';
+
+    return `<tr>
+      <td>${d.sales_team}${chTag}</td>
+      <td class="td-num">${fmtSGD(d.total_net_revenue)}</td>
+      <td class="td-num">${fmt(d.total_qty)}</td>
+      <td class="td-num">${fmtPct(d.gross_margin_pct)}</td>
+      <td class="td-num" style="color:${momColor};font-weight:600;">${momStr}</td>
+      <td class="td-num" style="color:${yoyColor};font-weight:600;">${yoyStr}</td>
+      <td class="td-num" style="color:var(--muted);">${tVal ? fmtSGD(tVal) : '—'}</td>
+      <td>${tVal?`<div class="progress-wrap"><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${Math.min(barW,100)}%;background:${barC}"></div></div><span class="progress-pct">${Math.round(att)}%</span></div>`:'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// BRANDS
+async function loadBrands() {
+  const f=filters();
+  try {
+    const [data, monthly, byChannel] = await Promise.all([
+      api('/api/revenue/by-brand?'+qs({year_month:f.year_month,sales_team:f.sales_team})),
+      api('/api/revenue/monthly?'+qs({sales_team:f.sales_team,brand:f.brand})),
+      api('/api/revenue/by-channel?'+qs({year_month:null,brand:f.brand})), // all months
+    ]);
+    renderBrandChart(data.slice(0,15));
+    renderBrandMoMChart(f.brand);
+    renderBrandTable(data);
+  } catch(e){console.error(e);}
+}
+
+async function renderBrandMoMChart(selectedBrand) {
+  destroyChart('brandMoM');
+  try {
+    // Fetch monthly data per channel for last 24 months
+    const channelGroups = ['Offline','Online','Wholesale'];
+    const channelColors = {'Offline':'#1e5ef5','Online':'#14b8a6','Wholesale':'#f59e0b'};
+
+    // Get all store data month by month
+    const allMonthly = await api('/api/revenue/monthly?'+qs({brand: selectedBrand||''}));
+    const last24 = allMonthly.slice(-24);
+    const labels = last24.map(d => d.year_month);
+
+    // For each channel group, fetch monthly breakdown
+    const datasets = await Promise.all(channelGroups.map(async ch => {
+      // Get stores in this channel
+      const stores = Object.entries(STORE_TO_CHANNEL).filter(([,v])=>v===ch).map(([k])=>k);
+      // Fetch monthly for each store, sum up
+      const storeData = await Promise.all(stores.map(s =>
+        api('/api/revenue/monthly?'+qs({sales_team:s,brand:selectedBrand||''})).catch(()=>[])
+      ));
+      // Build month → revenue map
+      const monthMap = {};
+      storeData.flat().forEach(d => { monthMap[d.year_month] = (monthMap[d.year_month]||0) + (d.total_revenue||0); });
+      return {
+        label: ch,
+        data: labels.map(m => monthMap[m]||0),
+        backgroundColor: channelColors[ch],
+        borderWidth: 0,
+      };
+    }));
+
+    const ctx = document.getElementById('chartBrandMoM').getContext('2d');
+    charts['brandMoM'] = new Chart(ctx, {
+      type: 'bar',
+      data: { labels, datasets },
+      options: {
+        ...chartOpts(),
+        plugins: {
+          ...chartOpts().plugins,
+          legend: { display:true, labels:{ color:'#4a5578', font:{size:10,family:'DM Mono'}, boxWidth:14, padding:16 }}
+        },
+        scales: {
+          x: { stacked:true, grid:{color:'rgba(30,60,120,0.06)'}, ticks:{color:'#94a3b8',font:{family:'DM Mono',size:9},maxRotation:45}},
+          y: { stacked:true, grid:{color:'rgba(30,60,120,0.06)'}, ticks:{color:'#94a3b8',font:{family:'DM Mono',size:9},callback:v=>'S$'+(v>=1000000?(v/1000000).toFixed(1)+'M':v>=1000?(v/1000).toFixed(0)+'K':v)}}
+        }
+      }
+    });
+  } catch(e){ console.error(e); }
+}
+
+function renderBrandChart(data) {
+  destroyChart('brands');
+  const ctx=document.getElementById('chartBrands').getContext('2d');
+  charts['brands']=new Chart(ctx,{
+    type:'bar',
+    data:{labels:data.map(d=>d.brand),datasets:[{label:'Revenue',data:data.map(d=>d.total_revenue),backgroundColor:'rgba(14,165,233,0.75)',borderColor:'#0ea5e9',borderWidth:0,borderRadius:4}]},
+    options:{
+      ...chartOpts(),
+      indexAxis:'y',
+      scales:{
+        x:{grid:{color:'rgba(30,60,120,0.06)'},ticks:{color:'#94a3b8',font:{family:'DM Mono',size:9},callback:v=>'S$'+(v>=1000000?(v/1000000).toFixed(1)+'M':v>=1000?(v/1000).toFixed(0)+'K':v)}},
+        y:{grid:{color:'rgba(30,60,120,0.06)'},ticks:{color:'#0f1729',font:{family:'DM Mono',size:10},crossAlign:'far'}}
+      }
+    }
+  });
+}
+
+function renderBrandTable(data) {
+  const tbody=document.getElementById('brandTableBody');
+  if(!data.length){tbody.innerHTML='<tr><td colspan="7"><div class="empty"><div class="empty-icon">📦</div><div class="empty-text">No data</div></div></td></tr>';return;}
+  const totalRev = data.reduce((s,d)=>s+(d.total_revenue||0),0);
+  let cumulative = 0;
+  tbody.innerHTML=data.map((d,i)=>{
+    cumulative += d.total_revenue||0;
+    const cumPct = totalRev > 0 ? (cumulative/totalRev*100) : 0;
+    const is80 = cumPct <= 80.5; // highlight brands in top 80%
+    return `<tr style="${is80?'':'opacity:0.6'}">
+      <td style="color:var(--muted);font-size:11px;">${i+1}</td>
+      <td style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;">${d.brand}</td>
+      <td class="td-num">${fmtSGD(d.total_revenue)}</td>
+      <td class="td-num">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="flex:1;height:4px;background:var(--surface3);border-radius:2px;min-width:60px;">
+            <div style="width:${Math.min(cumPct,100)}%;height:100%;background:${cumPct<=80?'var(--accent)':'var(--accent3)'};border-radius:2px;"></div>
+          </div>
+          <span style="font-size:10px;width:38px;text-align:right;color:${cumPct<=80?'var(--accent)':'var(--muted)'};">${cumPct.toFixed(1)}%</span>
+        </div>
+      </td>
+      <td class="td-num">${fmt(d.total_qty)}</td>
+      <td class="td-num">${fmtPct(d.gross_margin_pct)}</td>
+      <td class="td-num">${d.total_qty > 0 ? fmtSGD((d.total_revenue/d.total_qty).toFixed(2)) : '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// PRODUCTS
+async function loadProducts() {
+  const f=filters();
+  try {
+    const data=await api('/api/products/top?'+qs({...f,limit:50}));
+    const tbody=document.getElementById('productTableBody');
+    if(!data.length){tbody.innerHTML='<tr><td colspan="7"><div class="empty"><div class="empty-icon">🏷️</div><div class="empty-text">No product data — barcodes may be missing for this period</div></div></td></tr>';return;}
+    tbody.innerHTML=data.map((d,i)=>`<tr>
+      <td style="color:var(--muted);font-size:11px;">${i+1}</td>
+      <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.product_name||'—'}</td>
+      <td><span style="background:var(--surface3);padding:2px 8px;border-radius:4px;font-size:10px;">${d.brand||'—'}</span></td>
+      <td class="td-num">${fmtSGD(d.total_revenue)}</td>
+      <td class="td-num">${fmt(d.total_qty)}</td>
+      <td class="td-num">${fmtSGD(d.avg_price)}</td>
+      <td class="td-num">${fmtPct(d.gross_margin_pct)}</td>
+    </tr>`).join('');
+  } catch(e){console.error(e);}
+}
+
+// YOY
+async function loadYoy() {
+  const f=filters();
+  try {
+    const data=await api('/api/revenue/yoy?'+qs({sales_team:f.sales_team,brand:f.brand}));
+    destroyChart('yoy');
+    const ctx=document.getElementById('chartYoy').getContext('2d');
+    const byYear={};
+    data.forEach(d=>{if(!byYear[d.year])byYear[d.year]=new Array(12).fill(null);byYear[d.year][d.month-1]=d.total_revenue;});
+    const colors={2023:'#cbd5e1',2024:'#0ea5e9',2025:'#14b8a6',2026:'#1e5ef5'};
+    charts['yoy']=new Chart(ctx,{
+      type:'line',
+      data:{labels:MN,datasets:Object.entries(byYear).map(([yr,vals])=>({label:yr,data:vals,borderColor:colors[yr]||'#888',backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:0.3,pointBackgroundColor:colors[yr]||'#888'}))},
+      options:{...chartOpts(),plugins:{...chartOpts().plugins,legend:{display:true,labels:{color:'#4a5578',font:{size:10,family:'DM Mono'},boxWidth:20,padding:16}}}}
+    });
+  } catch(e){console.error(e);}
+}
+
+// TARGETS
+async function loadTargets() {
+  try { targets=await api('/api/targets'); } catch(e){targets=[];}
+  renderTargetsTable();
+  const el=document.getElementById('targetsCount');
+  if(el) el.textContent=targets.length+' saved';
+}
+
+function renderTargetsTable() {
+  const tbody=document.getElementById('targetsTableBody');
+  if(!tbody) return;
+  if(!targets.length){tbody.innerHTML='<tr><td colspan="5"><div class="empty"><div class="empty-icon">🎯</div><div class="empty-text">No targets set yet</div></div></td></tr>';return;}
+  tbody.innerHTML=[...targets].sort((a,b)=>b.year_month.localeCompare(a.year_month)).map(t=>`<tr>
+    <td><span style="background:var(--surface3);padding:3px 8px;border-radius:4px;font-size:10px;font-family:'IBM Plex Mono',monospace;">${t.year_month}</span></td>
+    <td style="font-size:11px;">${t.sales_team}</td>
+    <td class="td-num" style="color:var(--accent);font-weight:600;">${fmtSGD(t.target)}</td>
+    <td style="font-size:10px;color:var(--muted);">${t.updated_at?new Date(t.updated_at).toLocaleDateString():'—'}</td>
+    <td><button class="btn btn-danger" onclick="deleteTarget('${t.year_month}','${t.sales_team.replace(/'/g,"\\'")}')">Delete</button></td>
+  </tr>`).join('');
+}
+
+async function saveTarget() {
+  const month=document.getElementById('tMonth').value.trim();
+  const channel=document.getElementById('tChannel').value;
+  const amount=parseFloat(document.getElementById('tAmount').value);
+  const msg=document.getElementById('targetMsg');
+  msg.className='form-msg'; msg.style.display='none';
+  if(!month||!channel||isNaN(amount)||amount<=0){msg.className='form-msg error';msg.textContent='Please fill in all fields.';msg.style.display='block';return;}
+  if(!/^\d{4}-\d{2}$/.test(month)){msg.className='form-msg error';msg.textContent='Format must be YYYY-MM (e.g. 2026-03)';msg.style.display='block';return;}
+  try {
+    await apiPost('/api/targets',{year_month:month,sales_team:channel,target:amount});
+    msg.className='form-msg success';msg.textContent=`✓ Saved: ${channel} / ${month} = S$${fmt(amount)}`;msg.style.display='block';
+    document.getElementById('tAmount').value='';
+    await loadTargets();
+  } catch(e){msg.className='form-msg error';msg.textContent='Error saving. Try again.';msg.style.display='block';}
+}
+
+async function deleteTarget(year_month,sales_team) {
+  if(!confirm(`Delete target for ${sales_team} / ${year_month}?`)) return;
+  try { await apiDelete(`/api/targets?year_month=${encodeURIComponent(year_month)}&sales_team=${encodeURIComponent(sales_team)}`); await loadTargets(); }
+  catch(e){alert('Error deleting.');}
+}
+
+function clearTargetForm() {
+  document.getElementById('tMonth').value='';
+  document.getElementById('tChannel').value='';
+  document.getElementById('tAmount').value='';
+  const msg=document.getElementById('targetMsg');
+  msg.style.display='none';
+}
+
+// AI
+function renderAIChips() {
+  const chips=['Which channel had the highest revenue this month?','What are the top 5 brands by margin?','How does this month compare to last month?','Which brands are underperforming?','What is the consignment vs outright split?'];
+  document.getElementById('aiChips').innerHTML=chips.map(q=>`<div class="ai-chip" onclick="document.getElementById('aiInput').value=this.textContent">${q}</div>`).join('');
+}
+
+async function sendAI() {
+  const input=document.getElementById('aiInput');
+  const q=input.value.trim();
+  if(!q) return;
+  const btn=document.getElementById('aiSend');
+  btn.disabled=true;btn.textContent='Thinking...';
+  document.getElementById('aiResponseArea').innerHTML=`<div class="ai-response"><div class="ai-response-label">Gemini AI</div><div class="ai-response-text" style="color:var(--muted)">Querying BigQuery and generating insight...</div></div>`;
+  const f=filters();
+  try {
+    const res=await apiPost('/api/ask',{question:q,...f});
+    document.getElementById('aiResponseArea').innerHTML=`<div class="ai-response"><div class="ai-response-label">Gemini AI · ${res.data_rows_used||''} rows</div><div class="ai-response-text">${res.answer}</div></div>`;
+    aiHistory.unshift({q,a:res.answer});
+    if(aiHistory.length>1){
+      document.getElementById('aiHistoryWrap').style.display='block';
+      document.getElementById('aiHistoryItems').innerHTML=aiHistory.slice(1,8).map(h=>`<div class="ai-history-item"><div class="ai-history-q">Q: ${h.q}</div><div class="ai-history-a">${h.a}</div></div>`).join('');
+    }
+    input.value='';
+  } catch(e){document.getElementById('aiResponseArea').innerHTML=`<div class="ai-response" style="border-left-color:var(--danger)"><div class="ai-response-text" style="color:var(--danger)">Error: ${e.message}</div></div>`;}
+  finally{btn.disabled=false;btn.textContent='Ask Gemini';}
+}
+
+// CHART DEFAULTS
+function chartOpts() {
+  return {
+    responsive:true,maintainAspectRatio:true,
+    plugins:{
+      legend:{display:false},
+      tooltip:{backgroundColor:'#ffffff',borderColor:'rgba(30,60,120,0.12)',borderWidth:1,titleColor:'#4a5578',bodyColor:'#0f1729',titleFont:{family:'IBM Plex Mono',size:10},bodyFont:{family:'IBM Plex Mono',size:11},callbacks:{label:ctx=>` S$${fmt(ctx.raw)}`}}
+    },
+    scales:{
+      x:{grid:{color:'rgba(30,60,120,0.06)'},ticks:{color:'#94a3b8',font:{family:'DM Mono',size:9},maxRotation:45}},
+      y:{grid:{color:'rgba(30,60,120,0.06)'},ticks:{color:'#94a3b8',font:{family:'DM Mono',size:9},callback:v=>'S$'+(v>=1000000?(v/1000000).toFixed(1)+'M':v>=1000?(v/1000).toFixed(0)+'K':v)}}
+    }
+  };
+}
+
+// BRAND SEARCH DROPDOWN
+function populateBrandDropdown(brands) {
+  const list = document.getElementById('brandDropdownList');
+  const allBrands = ['', ...brands];
+  list.innerHTML = allBrands.map(b => `
+    <div onclick="selectBrand('${b.replace(/'/g,"\\'")}','${b.replace(/'/g,"\\'")}')"
+      style="padding:8px 14px;font-family:'IBM Plex Mono',monospace;font-size:11px;cursor:pointer;color:${b?'var(--text)':'var(--muted)'};transition:background 0.15s;"
+      onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+      ${b || 'All Brands'}
+    </div>`).join('');
+}
+
+function selectBrand(value, label) {
+  document.getElementById('fBrand').value = value;
+  document.getElementById('fBrandSearch').value = label || '';
+  hideBrandDropdown();
+  applyFilters();
+}
+
+function showBrandDropdown() {
+  document.getElementById('brandDropdown').style.display = 'block';
+  document.getElementById('fBrandSearch').style.borderColor = 'var(--accent)';
+  filterBrandDropdown();
+}
+
+function hideBrandDropdown() {
+  document.getElementById('brandDropdown').style.display = 'none';
+  document.getElementById('fBrandSearch').style.borderColor = 'var(--border2)';
+}
+
+function filterBrandDropdown() {
+  const q = document.getElementById('fBrandSearch').value.toLowerCase();
+  const filtered = q ? meta.brands.filter(b => b.toLowerCase().includes(q)) : meta.brands;
+  populateBrandDropdown(filtered);
+  document.getElementById('brandDropdown').style.display = 'block';
+}
+
+init();
+</script>
+</body>
+</html>
