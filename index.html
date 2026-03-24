@@ -490,6 +490,7 @@ const filters = () => ({
   year_month: document.getElementById('fMonth').value,
   sales_team: document.getElementById('fChannel').value,
   brand: document.getElementById('fBrand').value,
+  channel_group: document.getElementById('fChannelGroup').value,
 });
 const qs = obj => Object.entries(obj).filter(([,v])=>v).map(([k,v])=>`${k}=${encodeURIComponent(v)}`).join('&');
 
@@ -607,11 +608,19 @@ function setOverviewView(view) {
 function renderMomTable(monthlyData) {
   const tbody = document.getElementById('momTableBody');
   if(!tbody) return;
+  const f = filters();
+  const channelGroup = f.channel_group;
   // Only show 2026 months
   const filtered = [...monthlyData].filter(d => d.year_month.startsWith('2026')).reverse();
   const rows = filtered.map(d => {
+    // Filter targets by channel group if selected
     const totalTarget = targets
-      .filter(t => t.year_month === d.year_month)
+      .filter(t => {
+        if(t.year_month !== d.year_month) return false;
+        if(f.sales_team) return t.sales_team === f.sales_team;
+        if(channelGroup) return STORE_TO_CHANNEL[t.sales_team] === channelGroup;
+        return true;
+      })
       .reduce((s,t) => s + t.target, 0);
     const att = totalTarget > 0 ? (d.total_revenue / totalTarget * 100) : null;
     const attColor = att == null ? 'var(--muted)' : att >= 100 ? 'var(--accent)' : att >= 80 ? 'var(--accent3)' : 'var(--danger)';
@@ -679,14 +688,21 @@ async function loadOverview() {
     const [ov,monthly,byChannel]=await Promise.all([
       api('/api/overview?'+qs(f)),
       api('/api/revenue/monthly?'+qs({sales_team:f.sales_team,brand:f.brand})),
-      api('/api/revenue/by-channel?'+qs({year_month:f.year_month,brand:f.brand})),
+      api('/api/revenue/by-channel?'+qs({year_month:f.year_month,sales_team:f.sales_team,brand:f.brand})),
     ]);
+
+    // Filter by channel group if selected
+    const channelGroup = document.getElementById('fChannelGroup').value;
+    const filteredByChannel = channelGroup
+      ? byChannel.filter(d => STORE_TO_CHANNEL[d.sales_team] === channelGroup)
+      : byChannel;
+
     renderKPIs(ov,f);
     renderMomTable(monthly);
-    window._lastChannelData = byChannel;
-    renderOverviewBreakdown(byChannel, f);
+    window._lastChannelData = filteredByChannel;
+    renderOverviewBreakdown(filteredByChannel, f);
     renderMonthlyChart(monthly,f);
-    renderChannelMixChart(byChannel);
+    renderChannelMixChart(filteredByChannel);
   } catch(e){console.error(e);}
 }
 
