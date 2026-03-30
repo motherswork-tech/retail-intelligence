@@ -708,28 +708,7 @@ if(sessionStorage.getItem('mw_auth') !== '1') {
                 <th style="padding:8px 12px;text-align:left;background:var(--surface2);border-bottom:1px solid var(--border);color:var(--muted);letter-spacing:0.08em;">EXAMPLE</th>
               </tr>
             </thead>
-            <tbody>
-              ${[
-                ['Order Date','TIMESTAMP','2026-03-01 09:00:00'],
-                ['Product/Barcode','STRING','8720689012089'],
-                ['Brand','STRING','AVENT'],
-                ['Product','STRING','[8720689012089] AVT BOTTLE'],
-                ['Sales Team','STRING','GWC'],
-                ['Customer','STRING','Jane Tan'],
-                ['Product/Is Consignment?','BOOLEAN','false'],
-                ['Order','STRING','S04804'],
-                ['Qty Ordered','FLOAT','2.0'],
-                ['Product/Cost','FLOAT','6.67'],
-                ['Unit Price','FLOAT','11.90'],
-                ['Untaxed Total','FLOAT','23.80'],
-              ].map(([col,type,ex],i) => `
-                <tr style="border-bottom:1px solid var(--border);">
-                  <td style="padding:8px 12px;color:var(--muted);">${i+1}</td>
-                  <td style="padding:8px 12px;color:var(--accent);font-weight:600;">${col}</td>
-                  <td style="padding:8px 12px;color:var(--text2);">${type}</td>
-                  <td style="padding:8px 12px;color:var(--muted);">${ex}</td>
-                </tr>`).join('')}
-            </tbody>
+            <tbody id="csvTemplateBody"></tbody>
           </table>
         </div>
       </div>
@@ -2302,6 +2281,35 @@ function downloadCSVTemplate() {
   a.download = 'odoo_sales_template.csv';
   a.click();
 }
+
+// Populate CSV template table
+(function() {
+  const rows = [
+    ['Order Date','TIMESTAMP','2026-03-01 09:00:00'],
+    ['Product/Barcode','STRING','8720689012089'],
+    ['Brand','STRING','AVENT'],
+    ['Product','STRING','[8720689012089] AVT BOTTLE'],
+    ['Sales Team','STRING','GWC'],
+    ['Customer','STRING','Jane Tan'],
+    ['Product/Is Consignment?','BOOLEAN','false'],
+    ['Order','STRING','S04804'],
+    ['Qty Ordered','FLOAT','2.0'],
+    ['Product/Cost','FLOAT','6.67'],
+    ['Unit Price','FLOAT','11.90'],
+    ['Untaxed Total','FLOAT','23.80'],
+  ];
+  const tbody = document.getElementById('csvTemplateBody');
+  if(tbody) {
+    tbody.innerHTML = rows.map(([col,type,ex],i) =>
+      `<tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:8px 12px;color:var(--muted);">${i+1}</td>
+        <td style="padding:8px 12px;color:var(--accent);font-weight:600;">${col}</td>
+        <td style="padding:8px 12px;color:var(--text2);">${type}</td>
+        <td style="padding:8px 12px;color:var(--muted);">${ex}</td>
+      </tr>`
+    ).join('');
+  }
+})();
 
 // ── UPLOAD TAB ────────────────────────────────────────────────────────────────
 let uploadSelectedFile = null;
