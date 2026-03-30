@@ -1465,30 +1465,32 @@ async function renderBrandMoMChart(selectedBrand) {
   try {
     const channelColors = {'Offline':'#1e5ef5','Online':'#14b8a6','Wholesale':'#f59e0b'};
 
-    // Use yoy endpoint — returns year_month + sales_team + total_revenue per row
-    const allData = await api('/api/revenue/yoy?' + qs({brand: selectedBrand||''}));
+    // Fetch monthly revenue for each channel group in parallel — 3 calls total
+    const [offlineData, onlineData, wholesaleData] = await Promise.all([
+      api('/api/revenue/monthly?' + qs({brand: selectedBrand||'', channel_group: 'Offline'})),
+      api('/api/revenue/monthly?' + qs({brand: selectedBrand||'', channel_group: 'Online'})),
+      api('/api/revenue/monthly?' + qs({brand: selectedBrand||'', channel_group: 'Wholesale'})),
+    ]);
 
-    // Build month → channel → revenue map
-    const monthChannelMap = {};
-    allData.forEach(d => {
-      const m = d.year_month;
-      if(!m) return;
-      const ch = STORE_TO_CHANNEL[d.sales_team] || null;
-      if(!ch) return;
-      if(!monthChannelMap[m]) monthChannelMap[m] = {Offline:0, Online:0, Wholesale:0};
-      monthChannelMap[m][ch] += d.total_revenue || 0;
-    });
+    // Build a unified month list from all three
+    const allMonthsSet = new Set([
+      ...offlineData.map(d => d.year_month),
+      ...onlineData.map(d => d.year_month),
+      ...wholesaleData.map(d => d.year_month),
+    ]);
+    const labels = [...allMonthsSet].filter(Boolean).sort().slice(-24);
 
-    // Last 24 months
-    const allMonths = Object.keys(monthChannelMap).sort();
-    const labels = allMonths.slice(-24);
+    // Build lookup maps
+    const toMap = arr => Object.fromEntries(arr.map(d => [d.year_month, d.total_revenue || 0]));
+    const offMap = toMap(offlineData);
+    const onMap  = toMap(onlineData);
+    const whMap  = toMap(wholesaleData);
 
-    const datasets = ['Offline','Online','Wholesale'].map(ch => ({
-      label: ch,
-      data: labels.map(m => monthChannelMap[m]?.[ch] || 0),
-      backgroundColor: channelColors[ch],
-      borderWidth: 0,
-    }));
+    const datasets = [
+      { label: 'Offline',   data: labels.map(m => offMap[m] || 0), backgroundColor: channelColors['Offline'],   borderWidth: 0 },
+      { label: 'Online',    data: labels.map(m => onMap[m]  || 0), backgroundColor: channelColors['Online'],    borderWidth: 0 },
+      { label: 'Wholesale', data: labels.map(m => whMap[m]  || 0), backgroundColor: channelColors['Wholesale'], borderWidth: 0 },
+    ];
 
     const ctx = document.getElementById('chartBrandMoM').getContext('2d');
     charts['brandMoM'] = new Chart(ctx, {
