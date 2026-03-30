@@ -1463,32 +1463,31 @@ async function loadBrands() {
 async function renderBrandMoMChart(selectedBrand) {
   destroyChart('brandMoM');
   try {
-    // Fetch monthly data per channel for last 24 months
-    const channelGroups = ['Offline','Online','Wholesale'];
     const channelColors = {'Offline':'#1e5ef5','Online':'#14b8a6','Wholesale':'#f59e0b'};
 
-    // Get all store data month by month
-    const allMonthly = await api('/api/revenue/monthly?'+qs({brand: selectedBrand||''}));
-    const last24 = allMonthly.slice(-24);
-    const labels = last24.map(d => d.year_month);
+    // Single API call — all months, all stores, filtered by brand
+    const allData = await api('/api/revenue/by-channel?' + qs({brand: selectedBrand||''}));
 
-    // For each channel group, fetch monthly breakdown
-    const datasets = await Promise.all(channelGroups.map(async ch => {
-      // Get stores in this channel
-      const stores = Object.entries(STORE_TO_CHANNEL).filter(([,v])=>v===ch).map(([k])=>k);
-      // Fetch monthly for each store, sum up
-      const storeData = await Promise.all(stores.map(s =>
-        api('/api/revenue/monthly?'+qs({sales_team:s,brand:selectedBrand||''})).catch(()=>[])
-      ));
-      // Build month → revenue map
-      const monthMap = {};
-      storeData.flat().forEach(d => { monthMap[d.year_month] = (monthMap[d.year_month]||0) + (d.total_revenue||0); });
-      return {
-        label: ch,
-        data: labels.map(m => monthMap[m]||0),
-        backgroundColor: channelColors[ch],
-        borderWidth: 0,
-      };
+    // Build month → channel → revenue map
+    const monthChannelMap = {};
+    allData.forEach(d => {
+      const m = d.year_month;
+      if(!m) return;
+      const ch = STORE_TO_CHANNEL[d.sales_team] || null;
+      if(!ch) return;
+      if(!monthChannelMap[m]) monthChannelMap[m] = {Offline:0, Online:0, Wholesale:0};
+      monthChannelMap[m][ch] += d.total_revenue || 0;
+    });
+
+    // Last 24 months
+    const allMonths = Object.keys(monthChannelMap).sort();
+    const labels = allMonths.slice(-24);
+
+    const datasets = ['Offline','Online','Wholesale'].map(ch => ({
+      label: ch,
+      data: labels.map(m => monthChannelMap[m]?.[ch] || 0),
+      backgroundColor: channelColors[ch],
+      borderWidth: 0,
     }));
 
     const ctx = document.getElementById('chartBrandMoM').getContext('2d');
