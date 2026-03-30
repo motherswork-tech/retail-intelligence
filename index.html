@@ -228,6 +228,7 @@ if(sessionStorage.getItem('mw_auth') !== '1') {
   <div class="tab" onclick="switchTab('customers',this)">Customers</div>
   <div class="tab" onclick="switchTab('ai',this)">AI Q&amp;A</div>
   <div class="tab" onclick="switchTab('targets',this)">Targets</div>
+  <div class="tab" onclick="switchTab('upload',this)">Upload Data</div>
 </nav>
 
 <div class="filter-bar">
@@ -618,6 +619,77 @@ if(sessionStorage.getItem('mw_auth') !== '1') {
         </tr></thead>
         <tbody id="customerTableBody"></tbody>
       </table></div>
+    </div>
+  </div>
+
+  <!-- ── UPLOAD PAGE ─────────────────────────────────────────────────────── -->
+  <div class="page" id="page-upload">
+    <div style="max-width:640px;margin:0 auto;padding-top:12px;">
+
+      <div class="chart-card" style="margin-bottom:20px;">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Upload Monthly Sales CSV</div>
+            <div class="chart-sub">Drag &amp; drop your Odoo Sales Analysis Report · appends to transactions automatically</div>
+          </div>
+        </div>
+
+        <!-- Drop zone -->
+        <div id="uploadDropZone" style="
+          border:2px dashed var(--border2);border-radius:10px;padding:48px 24px;
+          text-align:center;cursor:pointer;transition:all 0.2s;background:var(--surface2);
+          margin-bottom:20px;
+        "
+          ondragover="uploadDragOver(event)"
+          ondragleave="uploadDragLeave(event)"
+          ondrop="uploadDrop(event)"
+          onclick="document.getElementById('uploadFileInput').click()"
+        >
+          <div style="font-size:32px;margin-bottom:12px;">📂</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;">Drop your CSV here</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);">or click to browse · .csv files only</div>
+          <div id="uploadFileName" style="margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);display:none;"></div>
+        </div>
+        <input type="file" id="uploadFileInput" accept=".csv" style="display:none" onchange="uploadFileSelected(event)">
+
+        <!-- Upload button -->
+        <button id="uploadBtn" class="btn btn-primary" style="width:100%;padding:12px;font-size:12px;display:none;" onclick="uploadSalesCSV()">
+          Upload &amp; Load to Dashboard
+        </button>
+
+        <!-- Progress / result -->
+        <div id="uploadStatus" style="margin-top:16px;display:none;"></div>
+      </div>
+
+      <!-- Instructions card -->
+      <div class="chart-card">
+        <div class="chart-header"><div>
+          <div class="chart-title">How it works</div>
+          <div class="chart-sub">Monthly data refresh process</div>
+        </div></div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text2);line-height:2;">
+          <div style="margin-bottom:8px;">
+            <span style="background:var(--accent);color:#fff;border-radius:4px;padding:2px 8px;font-size:10px;margin-right:8px;">1</span>
+            Export <strong>Sales Analysis Report</strong> from Odoo as CSV
+          </div>
+          <div style="margin-bottom:8px;">
+            <span style="background:var(--accent);color:#fff;border-radius:4px;padding:2px 8px;font-size:10px;margin-right:8px;">2</span>
+            Drag &amp; drop the file above — no renaming needed
+          </div>
+          <div style="margin-bottom:8px;">
+            <span style="background:var(--accent);color:#fff;border-radius:4px;padding:2px 8px;font-size:10px;margin-right:8px;">3</span>
+            Data loads to <strong>odoo_sales</strong> and inserts into <strong>transactions</strong> automatically
+          </div>
+          <div>
+            <span style="background:var(--accent);color:#fff;border-radius:4px;padding:2px 8px;font-size:10px;margin-right:8px;">4</span>
+            Refresh the dashboard — new month appears in all filters
+          </div>
+        </div>
+        <div style="margin-top:16px;padding:12px;background:var(--accent-dim);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text2);">
+          ⚠ Duplicate dates are automatically skipped — safe to re-upload the same month.
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -2174,6 +2246,87 @@ function renderCustomerTable(data) {
       <td><span style="background:${statusBg};color:${statusColor};padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;">${statusText}</span></td>
     </tr>`;
   }).join('');
+}
+
+
+// ── UPLOAD TAB ────────────────────────────────────────────────────────────────
+let uploadSelectedFile = null;
+
+function uploadDragOver(e) {
+  e.preventDefault();
+  document.getElementById('uploadDropZone').style.borderColor = 'var(--accent)';
+  document.getElementById('uploadDropZone').style.background = 'var(--accent-dim)';
+}
+function uploadDragLeave(e) {
+  document.getElementById('uploadDropZone').style.borderColor = 'var(--border2)';
+  document.getElementById('uploadDropZone').style.background = 'var(--surface2)';
+}
+function uploadDrop(e) {
+  e.preventDefault();
+  uploadDragLeave(e);
+  const file = e.dataTransfer.files[0];
+  if(file) setUploadFile(file);
+}
+function uploadFileSelected(e) {
+  const file = e.target.files[0];
+  if(file) setUploadFile(file);
+}
+function setUploadFile(file) {
+  if(!file.name.endsWith('.csv')) {
+    showUploadStatus('error', '❌ Only .csv files are accepted.');
+    return;
+  }
+  uploadSelectedFile = file;
+  const nameEl = document.getElementById('uploadFileName');
+  nameEl.textContent = `📄 ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+  nameEl.style.display = 'block';
+  document.getElementById('uploadBtn').style.display = 'block';
+  document.getElementById('uploadStatus').style.display = 'none';
+}
+async function uploadSalesCSV() {
+  if(!uploadSelectedFile) return;
+  const btn = document.getElementById('uploadBtn');
+  btn.disabled = true;
+  btn.textContent = 'Uploading...';
+  showUploadStatus('loading', '⏳ Uploading and processing — this may take 20–30 seconds...');
+  try {
+    const formData = new FormData();
+    formData.append('file', uploadSelectedFile);
+    const r = await fetch(API + '/api/upload/sales-csv', {
+      method: 'POST',
+      body: formData,
+      credentials: 'omit'
+    });
+    const data = await r.json();
+    if(!r.ok) throw new Error(data.detail || 'Upload failed');
+    showUploadStatus('success', `✅ ${data.message}`);
+    uploadSelectedFile = null;
+    document.getElementById('uploadFileName').style.display = 'none';
+    document.getElementById('uploadBtn').style.display = 'none';
+    document.getElementById('uploadFileInput').value = '';
+  } catch(err) {
+    showUploadStatus('error', `❌ ${err.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Upload & Load to Dashboard';
+  }
+}
+function showUploadStatus(type, msg) {
+  const el = document.getElementById('uploadStatus');
+  const colors = {
+    success: {bg:'rgba(16,185,129,0.1)', color:'var(--success)'},
+    error:   {bg:'var(--danger-dim)', color:'var(--danger)'},
+    loading: {bg:'var(--accent-dim)', color:'var(--accent)'}
+  };
+  const c = colors[type] || colors.loading;
+  el.style.display = 'block';
+  el.style.background = c.bg;
+  el.style.color = c.color;
+  el.style.padding = '12px 16px';
+  el.style.borderRadius = '8px';
+  el.style.fontFamily = "'IBM Plex Mono',monospace";
+  el.style.fontSize = '11px';
+  el.textContent = msg;
 }
 
 init();
