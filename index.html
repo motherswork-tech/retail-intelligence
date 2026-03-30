@@ -1465,8 +1465,8 @@ async function renderBrandMoMChart(selectedBrand) {
   try {
     const channelColors = {'Offline':'#1e5ef5','Online':'#14b8a6','Wholesale':'#f59e0b'};
 
-    // Single API call — all months, all stores, filtered by brand
-    const allData = await api('/api/revenue/by-channel?' + qs({brand: selectedBrand||''}));
+    // Use yoy endpoint — returns year_month + sales_team + total_revenue per row
+    const allData = await api('/api/revenue/yoy?' + qs({brand: selectedBrand||''}));
 
     // Build month → channel → revenue map
     const monthChannelMap = {};
