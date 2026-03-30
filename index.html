@@ -662,7 +662,7 @@ if(sessionStorage.getItem('mw_auth') !== '1') {
       </div>
 
       <!-- Instructions card -->
-      <div class="chart-card">
+      <div class="chart-card" style="margin-bottom:20px;">
         <div class="chart-header"><div>
           <div class="chart-title">How it works</div>
           <div class="chart-sub">Monthly data refresh process</div>
@@ -670,7 +670,7 @@ if(sessionStorage.getItem('mw_auth') !== '1') {
         <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text2);line-height:2;">
           <div style="margin-bottom:8px;">
             <span style="background:var(--accent);color:#fff;border-radius:4px;padding:2px 8px;font-size:10px;margin-right:8px;">1</span>
-            Export <strong>Sales Analysis Report</strong> from Odoo as CSV
+            Download new sales data <strong>(full days only — do not include current day's sales)</strong> from Odoo and export as CSV. Use the <strong>'Dashboard - Rev'</strong> export template in Odoo.
           </div>
           <div style="margin-bottom:8px;">
             <span style="background:var(--accent);color:#fff;border-radius:4px;padding:2px 8px;font-size:10px;margin-right:8px;">2</span>
@@ -690,13 +690,57 @@ if(sessionStorage.getItem('mw_auth') !== '1') {
         </div>
       </div>
 
+      <!-- CSV Template card -->
+      <div class="chart-card">
+        <div class="chart-header"><div>
+          <div class="chart-title">Expected CSV Format</div>
+          <div class="chart-sub">Your CSV must have these 12 columns in this exact order</div>
+        </div>
+        <button class="btn btn-ghost" onclick="downloadCSVTemplate()" style="font-size:10px;">⬇ Download Template</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:10px;">
+            <thead>
+              <tr>
+                <th style="padding:8px 12px;text-align:left;background:var(--surface2);border-bottom:1px solid var(--border);color:var(--muted);letter-spacing:0.08em;">#</th>
+                <th style="padding:8px 12px;text-align:left;background:var(--surface2);border-bottom:1px solid var(--border);color:var(--muted);letter-spacing:0.08em;">COLUMN NAME</th>
+                <th style="padding:8px 12px;text-align:left;background:var(--surface2);border-bottom:1px solid var(--border);color:var(--muted);letter-spacing:0.08em;">TYPE</th>
+                <th style="padding:8px 12px;text-align:left;background:var(--surface2);border-bottom:1px solid var(--border);color:var(--muted);letter-spacing:0.08em;">EXAMPLE</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${[
+                ['Order Date','TIMESTAMP','2026-03-01 09:00:00'],
+                ['Product/Barcode','STRING','8720689012089'],
+                ['Brand','STRING','AVENT'],
+                ['Product','STRING','[8720689012089] AVT BOTTLE'],
+                ['Sales Team','STRING','GWC'],
+                ['Customer','STRING','Jane Tan'],
+                ['Product/Is Consignment?','BOOLEAN','false'],
+                ['Order','STRING','S04804'],
+                ['Qty Ordered','FLOAT','2.0'],
+                ['Product/Cost','FLOAT','6.67'],
+                ['Unit Price','FLOAT','11.90'],
+                ['Untaxed Total','FLOAT','23.80'],
+              ].map(([col,type,ex],i) => `
+                <tr style="border-bottom:1px solid var(--border);">
+                  <td style="padding:8px 12px;color:var(--muted);">${i+1}</td>
+                  <td style="padding:8px 12px;color:var(--accent);font-weight:600;">${col}</td>
+                  <td style="padding:8px 12px;color:var(--text2);">${type}</td>
+                  <td style="padding:8px 12px;color:var(--muted);">${ex}</td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
   </div>
 
 </main>
 
 <script>
-const API = 'https://retail-intelligence-api-873728216699.asia-southeast1.run.app';
+const API = 'https://retail-intelligence-api-kgt3f3f3uq-as.a.run.app';
 const MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 // Store → Channel group mapping
@@ -2248,6 +2292,16 @@ function renderCustomerTable(data) {
   }).join('');
 }
 
+
+function downloadCSVTemplate() {
+  const headers = '"Order Date","Product/Barcode","Brand","Product","Sales Team","Customer","Product/Is Consignment?","Order","Qty Ordered","Product/Cost","Unit Price","Untaxed Total"';
+  const example = '"2026-03-01 09:00:00","8720689012089","AVENT","[8720689012089] AVT BOTTLE","GWC","Jane Tan","false","S04804","2.0","6.67","11.90","23.80"';
+  const blob = new Blob([headers + '\n' + example], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'odoo_sales_template.csv';
+  a.click();
+}
 
 // ── UPLOAD TAB ────────────────────────────────────────────────────────────────
 let uploadSelectedFile = null;
