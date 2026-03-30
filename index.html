@@ -768,6 +768,12 @@ const STORE_TO_CHANNEL = {
   'SGNTU':                       'Online',
   'SGSPM':                       'Online',
   'SGSSU':                       'Online',
+  // ── Platform channels derived from Customer field ──
+  'Shopee SG':                   'Online',
+  'Lazada SG':                   'Online',
+  'Amazon SG':                   'Online',
+  'TikTok SG':                   'Online',
+  'iShopChangi SG':              'Online',
   // ── Null fallback ──
   'Online':                      'Online',
 };
@@ -867,6 +873,12 @@ const STORE_ALIASES = {
   'SGRMT - REDMART':['SGRMT - REDMART', 'SGRMT'],
   'SGGMT Grab Mart':['SGGMT Grab Mart', 'SGGMT'],
   'SGISC - iShopChangi':['SGISC - iShopChangi', 'SGISC'],
+  // ── Platform channels derived from Customer field ──
+  'Shopee SG':      ['Shopee SG', 'Shopee Singapore'],
+  'Lazada SG':      ['Lazada SG', 'LAZADA PLATFORM', 'Lazada Platform'],
+  'Amazon SG':      ['Amazon SG', 'Amazon Platform', 'AMAZON ASIA-PACIFIC HOLDINGS PTE LTD'],
+  'TikTok SG':      ['TikTok SG', 'TIKTOK PLATFORM'],
+  'iShopChangi SG': ['iShopChangi SG', 'Ishop Changi Platform'],
 };
 // Display label for each canonical key
 const STORE_LABELS = {
@@ -892,6 +904,12 @@ const STORE_LABELS = {
   'SGSSU -SGSSU':        'SGSSU',
   'SGTTK -TikTok':       'SGTTK - TikTok',
   'SGWEB - Website':     'SGWEB - Website',
+  // ── Platform channels ──
+  'Shopee SG':      'Shopee Singapore',
+  'Lazada SG':      'Lazada',
+  'Amazon SG':      'Amazon',
+  'TikTok SG':      'TikTok',
+  'iShopChangi SG': 'iShopChangi',
 };
 
 // Returns all BQ values that match a canonical store key
