@@ -670,7 +670,7 @@ if(sessionStorage.getItem('mw_auth') !== '1') {
         <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text2);line-height:2;">
           <div style="margin-bottom:8px;">
             <span style="background:var(--accent);color:#fff;border-radius:4px;padding:2px 8px;font-size:10px;margin-right:8px;">1</span>
-            Download new sales data <strong>(full days only — do not include current day's sales)</strong> from Odoo and export as CSV. Use the <strong>'Dashboard - Rev'</strong> export template in Odoo.
+            Export the <strong>full month-to-date</strong> sales data from Odoo as CSV. Use the <strong>'Dashboard - Rev'</strong> template. <strong>Always export the complete month — not just new days.</strong>
           </div>
           <div style="margin-bottom:8px;">
             <span style="background:var(--accent);color:#fff;border-radius:4px;padding:2px 8px;font-size:10px;margin-right:8px;">2</span>
@@ -685,8 +685,8 @@ if(sessionStorage.getItem('mw_auth') !== '1') {
             Refresh the dashboard — new month appears in all filters
           </div>
         </div>
-        <div style="margin-top:16px;padding:12px;background:var(--accent-dim);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text2);">
-          ⚠ Duplicate dates are automatically skipped — safe to re-upload the same month.
+        <div style="margin-top:16px;padding:12px;background:#f59e0b22;border:1px solid #f59e0b55;border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text2);">
+          ⚠ <strong>Each upload replaces all data for that month.</strong> Always upload the full month-to-date export from Odoo — uploading partial data will cause under-reporting.
         </div>
       </div>
 
