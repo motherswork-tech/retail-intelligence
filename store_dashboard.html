@@ -377,13 +377,10 @@ tbody td { padding:11px 16px; font-family:var(--mono); font-size:11px; white-spa
         </div>
         <div class="card-body" style="padding:18px;">
           <canvas id="chartRunning" style="max-height:280px;"></canvas>
-          <div id="eomScorecard" style="display:none;margin-top:16px;padding:14px 16px;border-radius:10px;background:var(--surface2);border:1px solid var(--border2);">
-            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;">Estimated End of Month</div>
-            <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
-              <span id="eomValue" style="font-size:22px;font-weight:700;color:var(--accent);letter-spacing:-0.02em;">—</span>
-              <span id="eomPace" style="font-family:var(--mono);font-size:10px;color:var(--text2);"></span>
-            </div>
-            <div id="eomSub" style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px;"></div>
+          <div id="eomScorecard" style="display:none;margin-top:16px;padding:16px 18px;border-radius:10px;background:var(--surface2);border:1px solid var(--border2);text-align:center;">
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:8px;" id="eomLabel">End of Month</div>
+            <div id="eomValue" style="font-size:28px;font-weight:700;color:var(--accent);letter-spacing:-0.02em;line-height:1;">—</div>
+            <div id="eomSub" style="font-family:var(--mono);font-size:10px;color:var(--text2);margin-top:6px;"></div>
           </div>
         </div>
       </div>
@@ -946,24 +943,19 @@ function renderRunningChart(dailyData, year, monthIdx) {
   const eomPace   = document.getElementById('eomPace');
   const eomSub    = document.getElementById('eomSub');
 
+  const eomLabel = document.getElementById('eomLabel');
+  scorecard.style.display = 'block';
+
   if (isComplete) {
-    // Month is done — show actual final total
-    scorecard.style.display = 'block';
-    scorecard.style.borderColor = 'var(--border2)';
+    eomLabel.textContent = 'Final Revenue';
     eomValue.textContent = fmtS(totalSoFar);
-    eomPace.textContent  = 'Final';
-    eomSub.textContent   = 'Month complete · ' + tradingDays + ' trading days · avg S$' + fmt(Math.round(avgPerTradingDay)) + '/day';
-  } else if (remainingDays > 0 && avgPerTradingDay > 0) {
-    // Month in progress — show projection
-    const pctDone = Math.round((lastRealDay / daysInMonth) * 100);
-    const vsActual = totalSoFar > 0 ? ((projectedEnd - totalSoFar) / totalSoFar * 100) : 0;
-    scorecard.style.display = 'block';
-    scorecard.style.borderColor = 'rgba(245,166,35,0.3)';
-    eomValue.textContent = fmtS(Math.round(projectedEnd));
-    eomPace.textContent  = '+S$' + fmt(Math.round(projectedEnd - totalSoFar)) + ' to go';
-    eomSub.textContent   = pctDone + '% through month · ' + remainingDays + ' days left · avg S$' + fmt(Math.round(avgPerTradingDay)) + '/day';
+    eomSub.textContent   = 'Month complete · ' + tradingDays + ' trading days';
+    scorecard.style.borderColor = 'var(--border2)';
   } else {
-    scorecard.style.display = 'none';
+    eomLabel.textContent = 'Est. End of Month';
+    eomValue.textContent = fmtS(Math.round(projectedEnd));
+    eomSub.textContent   = remainingDays + ' days left · S$' + fmt(Math.round(avgPerTradingDay)) + '/day avg';
+    scorecard.style.borderColor = 'rgba(245,166,35,0.25)';
   }
 }
 
