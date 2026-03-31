@@ -750,14 +750,15 @@ async function renderDailyChart(ym, ov) {
     }
 
     // Build a full-month array (days with no sales = 0)
+    // Field names from existing /api/revenue/daily endpoint: order_day, total_revenue, total_qty
     const daysInMonth = new Date(+y, +m, 0).getDate();
     const dailyMap = {};
     daily.forEach(row => {
-      const day = new Date(row.order_date).getDate();
+      const day = new Date(row.order_day).getDate();
       dailyMap[day] = row;
     });
-    const dailyRevenue = Array.from({length: daysInMonth}, (_, i) => dailyMap[i+1]?.daily_revenue || 0);
-    const dailyQty     = Array.from({length: daysInMonth}, (_, i) => dailyMap[i+1]?.daily_qty || 0);
+    const dailyRevenue = Array.from({length: daysInMonth}, (_, i) => dailyMap[i+1]?.total_revenue || 0);
+    const dailyQty     = Array.from({length: daysInMonth}, (_, i) => dailyMap[i+1]?.total_qty || 0);
     const dailyTxn     = Array.from({length: daysInMonth}, (_, i) => dailyMap[i+1]?.transaction_count || 0);
 
     // KPIs
