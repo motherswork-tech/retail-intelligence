@@ -629,7 +629,7 @@ if(sessionStorage.getItem('mw_auth') !== '1') {
       <div class="chart-card" style="margin-bottom:20px;">
         <div class="chart-header">
           <div>
-            <div class="chart-title">Upload Monthly Sales CSV</div>
+            <div class="chart-title">Upload Sales CSV</div>
             <div class="chart-sub">Drag &amp; drop your Odoo Sales Analysis Report · appends to transactions automatically</div>
           </div>
         </div>
@@ -665,12 +665,12 @@ if(sessionStorage.getItem('mw_auth') !== '1') {
       <div class="chart-card" style="margin-bottom:20px;">
         <div class="chart-header"><div>
           <div class="chart-title">How it works</div>
-          <div class="chart-sub">Monthly data refresh process</div>
+          <div class="chart-sub">Upload weekly or any date range — duplicates are skipped automatically</div>
         </div></div>
         <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text2);line-height:2;">
           <div style="margin-bottom:8px;">
             <span style="background:var(--accent);color:#fff;border-radius:4px;padding:2px 8px;font-size:10px;margin-right:8px;">1</span>
-            Export the <strong>full month-to-date</strong> sales data from Odoo as CSV. Use the <strong>'Dashboard - Rev'</strong> template. <strong>Always export the complete month — not just new days.</strong>
+            Export sales data from Odoo as CSV. Use the <strong>'Dashboard - Rev'</strong> template. You can upload <strong>weekly or any partial period</strong> — duplicate rows are automatically skipped.
           </div>
           <div style="margin-bottom:8px;">
             <span style="background:var(--accent);color:#fff;border-radius:4px;padding:2px 8px;font-size:10px;margin-right:8px;">2</span>
@@ -686,7 +686,7 @@ if(sessionStorage.getItem('mw_auth') !== '1') {
           </div>
         </div>
         <div style="margin-top:16px;padding:12px;background:#f59e0b22;border:1px solid #f59e0b55;border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text2);">
-          ⚠ <strong>Each upload replaces all data for that month.</strong> Always upload the full month-to-date export from Odoo — uploading partial data will cause under-reporting.
+          ℹ <strong>Uploads are safe to repeat.</strong> Duplicate rows (same order date, order number, barcode, and price) are automatically skipped — so you can re-upload the same file or upload overlapping date ranges without bloating the data.
         </div>
       </div>
 
@@ -2306,7 +2306,7 @@ function downloadCSVTemplate() {
   const rows = [
     ['Order Date','TIMESTAMP','2026-03-01 09:00:00'],
     ['Product/Barcode','STRING','8720689012089'],
-    ['Brand','STRING','AVENT'],
+    ['Product/Brand','STRING','AVENT'],
     ['Product','STRING','[8720689012089] AVT BOTTLE'],
     ['Sales Team','STRING','GWC'],
     ['Customer','STRING','Jane Tan'],
