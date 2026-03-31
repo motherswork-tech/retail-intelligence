@@ -377,6 +377,14 @@ tbody td { padding:11px 16px; font-family:var(--mono); font-size:11px; white-spa
         </div>
         <div class="card-body" style="padding:18px;">
           <canvas id="chartRunning" style="max-height:280px;"></canvas>
+          <div id="eomScorecard" style="display:none;margin-top:16px;padding:14px 16px;border-radius:10px;background:var(--surface2);border:1px solid var(--border2);">
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;">Estimated End of Month</div>
+            <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
+              <span id="eomValue" style="font-size:22px;font-weight:700;color:var(--accent);letter-spacing:-0.02em;">—</span>
+              <span id="eomPace" style="font-family:var(--mono);font-size:10px;color:var(--text2);"></span>
+            </div>
+            <div id="eomSub" style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px;"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -775,7 +783,7 @@ async function renderDailyChart(ym, ov) {
     document.getElementById('dailyChartSub').textContent = 'Actual daily revenue · ' + tradingDays + ' trading days';
 
     renderDailyBarChart(dailyRevenue, dailyQty, dailyTxn, +y, +m - 1);
-    renderRunningChart(dailyRevenue);
+    renderRunningChart(dailyRevenue, +y, +m - 1);
 
   } catch (e) {
     console.error(e);
@@ -841,7 +849,7 @@ function renderDailyBarChart(dailyRevenue, dailyQty, dailyTxn, year, monthIdx) {
   });
 }
 
-function renderRunningChart(dailyData) {
+function renderRunningChart(dailyData, year, monthIdx) {
   dc('running');
   const col = STORE_COLORS[STORE];
   const today = new Date();
@@ -903,7 +911,10 @@ function renderRunningChart(dailyData) {
         legend: { display: false },
         tooltip: {
           callbacks: {
-            title: ctx => 'Day ' + ctx[0].label,
+            title: ctx => {
+              const d = new Date(year, monthIdx, ctx[0].dataIndex + 1);
+              return d.toLocaleDateString('en-SG', {weekday:'short', day:'numeric', month:'short'});
+            },
             label: ctx => {
               if (ctx.datasetIndex === 0) return ' Actual: S$' + fmt(ctx.raw);
               if (ctx.raw == null) return null;
@@ -929,10 +940,30 @@ function renderRunningChart(dailyData) {
     }
   });
 
-  // Update card subtitle with projection
-  if (!isComplete && remainingDays > 0) {
-    const cardSub = document.querySelector('#page-daily .chart-grid .card:last-child .card-sub');
-    if (cardSub) cardSub.textContent = 'Projected end: S$' + fmt(Math.round(projectedEnd));
+  // EOM scorecard
+  const scorecard = document.getElementById('eomScorecard');
+  const eomValue  = document.getElementById('eomValue');
+  const eomPace   = document.getElementById('eomPace');
+  const eomSub    = document.getElementById('eomSub');
+
+  if (isComplete) {
+    // Month is done — show actual final total
+    scorecard.style.display = 'block';
+    scorecard.style.borderColor = 'var(--border2)';
+    eomValue.textContent = fmtS(totalSoFar);
+    eomPace.textContent  = 'Final';
+    eomSub.textContent   = 'Month complete · ' + tradingDays + ' trading days · avg S$' + fmt(Math.round(avgPerTradingDay)) + '/day';
+  } else if (remainingDays > 0 && avgPerTradingDay > 0) {
+    // Month in progress — show projection
+    const pctDone = Math.round((lastRealDay / daysInMonth) * 100);
+    const vsActual = totalSoFar > 0 ? ((projectedEnd - totalSoFar) / totalSoFar * 100) : 0;
+    scorecard.style.display = 'block';
+    scorecard.style.borderColor = 'rgba(245,166,35,0.3)';
+    eomValue.textContent = fmtS(Math.round(projectedEnd));
+    eomPace.textContent  = '+S$' + fmt(Math.round(projectedEnd - totalSoFar)) + ' to go';
+    eomSub.textContent   = pctDone + '% through month · ' + remainingDays + ' days left · avg S$' + fmt(Math.round(avgPerTradingDay)) + '/day';
+  } else {
+    scorecard.style.display = 'none';
   }
 }
 
