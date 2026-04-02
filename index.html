@@ -875,29 +875,29 @@ function storePrimary(key) {
 
 // Maps short code → full name (canonical display name)
 const STORE_ALIASES = {
-  'BBF':            ['BBF', 'BBF Baby Fair'],
+  'BBF':            ['BBF', 'BBF Baby Fair', 'BBF STORE'],
   'EVT':            ['EVT', 'EVT Events'],
-  'GWC':            ['GWC', 'GWC Motherswork Baby & Kids'],
+  'GWC':            ['GWC', 'GWC Motherswork Baby & Kids', 'GWC STORE'],
   'HQS':            ['HQS', 'HQS Mothers Work Pte Ltd'],
   'OCK':            ['OCK', 'OCK Orchard Tangs'],
-  'TAK':            ['TAK', 'TAK Takashimaya'],
-  'TM3':            ['TM3', 'TM3 Motherswork Kids'],
+  'TAK':            ['TAK', 'TAK Takashimaya', 'TAK STORE'],
+  'TM3':            ['TM3', 'TM3 Motherswork Kids', 'TM3 STORE'],
   'VCT':            ['VCT', 'VCT VivoCity Tangs'],
   // Renamed stores — old target names → new Odoo names
-  'Motherswork SG': ['Motherswork SG', 'SGWEB - Website', 'SGWEB'],
+  'Motherswork SG': ['Motherswork SG', 'SGWEB - Website', 'SGWEB', 'SHOPIFY MW SG'],
   'Sales':          ['Sales', 'HQS Mothers Work Pte Ltd', 'HQS'],
   'SGLAZ - Lazada': ['SGLAZ - Lazada', 'SGLAZ'],
   'SGSHP - Shopee': ['SGSHP - Shopee', 'SGSHP'],
   'SGTTK -TikTok':  ['SGTTK -TikTok', 'SGTTK'],
-  'SGAMZ Amazon':   ['SGAMZ Amazon', 'SGAMZ'],
+  'SGAMZ Amazon':   ['SGAMZ Amazon', 'SGAMZ', 'AMAZON STORE'],
   'SGRMT - REDMART':['SGRMT - REDMART', 'SGRMT'],
   'SGGMT Grab Mart':['SGGMT Grab Mart', 'SGGMT'],
   'SGISC - iShopChangi':['SGISC - iShopChangi', 'SGISC'],
   // ── Platform channels derived from Customer field ──
-  'Shopee SG':      ['Shopee SG', 'Shopee Singapore'],
-  'Lazada SG':      ['Lazada SG', 'LAZADA PLATFORM', 'Lazada Platform'],
+  'Shopee SG':      ['Shopee SG', 'Shopee Singapore', 'SHOPEE SINGAPORE'],
+  'Lazada SG':      ['Lazada SG', 'LAZADA PLATFORM', 'Lazada Platform', 'LAZADA SINGAPORE'],
   'Amazon SG':      ['Amazon SG', 'Amazon Platform', 'AMAZON ASIA-PACIFIC HOLDINGS PTE LTD'],
-  'TikTok SG':      ['TikTok SG', 'TIKTOK PLATFORM'],
+  'TikTok SG':      ['TikTok SG', 'TIKTOK PLATFORM', 'TIKTOK SINGAPORE'],
   'iShopChangi SG': ['iShopChangi SG', 'Ishop Changi Platform'],
 };
 // Display label for each canonical key
