@@ -873,63 +873,58 @@ function storePrimary(key) {
   return STORE_PRIMARY[key] || key;
 }
 
-// Maps short code → full name (canonical display name)
+// Maps canonical key → all BQ name variants (Cegid + Odoo)
 const STORE_ALIASES = {
-  'BBF':            ['BBF', 'BBF Baby Fair', 'BBF STORE'],
-  'EVT':            ['EVT', 'EVT Events'],
+  // ── Offline stores ──
   'GWC':            ['GWC', 'GWC Motherswork Baby & Kids', 'GWC STORE'],
-  'HQS':            ['HQS', 'HQS Mothers Work Pte Ltd'],
-  'OCK':            ['OCK', 'OCK Orchard Tangs'],
-  'TAK':            ['TAK', 'TAK Takashimaya', 'TAK STORE'],
   'TM3':            ['TM3', 'TM3 Motherswork Kids', 'TM3 STORE'],
+  'TAK':            ['TAK', 'TAK Takashimaya', 'TAK STORE'],
+  'BBF':            ['BBF', 'BBF Baby Fair', 'BBF STORE'],
+  'OCK':            ['OCK', 'OCK Orchard Tangs'],
   'VCT':            ['VCT', 'VCT VivoCity Tangs'],
-  // Renamed stores — old target names → new Odoo names
+  'EVT':            ['EVT', 'EVT Events'],
+  // ── Online ──
+  'Shopee SG':      ['Shopee SG', 'Shopee Singapore', 'SHOPEE SINGAPORE', 'SGSHP - Shopee', 'SGSHP'],
+  'Lazada SG':      ['Lazada SG', 'LAZADA PLATFORM', 'Lazada Platform', 'LAZADA SINGAPORE', 'SGLAZ - Lazada', 'SGLAZ'],
+  'Amazon SG':      ['Amazon SG', 'Amazon Platform', 'AMAZON ASIA-PACIFIC HOLDINGS PTE LTD', 'SGAMZ Amazon', 'SGAMZ', 'AMAZON STORE'],
+  'TikTok SG':      ['TikTok SG', 'TIKTOK PLATFORM', 'TIKTOK SINGAPORE', 'SGTTK -TikTok', 'SGTTK'],
+  'iShopChangi SG': ['iShopChangi SG', 'Ishop Changi Platform', 'SGISC - iShopChangi', 'SGISC'],
   'Motherswork SG': ['Motherswork SG', 'SGWEB - Website', 'SGWEB', 'SHOPIFY MW SG'],
-  'Sales':          ['Sales', 'HQS Mothers Work Pte Ltd', 'HQS'],
-  'SGLAZ - Lazada': ['SGLAZ - Lazada', 'SGLAZ'],
-  'SGSHP - Shopee': ['SGSHP - Shopee', 'SGSHP'],
-  'SGTTK -TikTok':  ['SGTTK -TikTok', 'SGTTK'],
-  'SGAMZ Amazon':   ['SGAMZ Amazon', 'SGAMZ', 'AMAZON STORE'],
   'SGRMT - REDMART':['SGRMT - REDMART', 'SGRMT'],
   'SGGMT Grab Mart':['SGGMT Grab Mart', 'SGGMT'],
-  'SGISC - iShopChangi':['SGISC - iShopChangi', 'SGISC'],
-  // ── Platform channels derived from Customer field ──
-  'Shopee SG':      ['Shopee SG', 'Shopee Singapore', 'SHOPEE SINGAPORE'],
-  'Lazada SG':      ['Lazada SG', 'LAZADA PLATFORM', 'Lazada Platform', 'LAZADA SINGAPORE'],
-  'Amazon SG':      ['Amazon SG', 'Amazon Platform', 'AMAZON ASIA-PACIFIC HOLDINGS PTE LTD'],
-  'TikTok SG':      ['TikTok SG', 'TIKTOK PLATFORM', 'TIKTOK SINGAPORE'],
+  'SGKRI - KrisShop':['SGKRI - KrisShop', 'SGKRI'],
+  'SGNTU - FairPrice':['SGNTU - FairPrice', 'SGNTU'],
+  'SGSPM SuperMom': ['SGSPM SuperMom', 'SGSPM'],
+  'SGSSU':          ['SGSSU -SGSSU', 'SGSSU'],
+  // ── Wholesale ──
+  'Sales':          ['Sales', 'HQS Mothers Work Pte Ltd', 'HQS'],
   'iShopChangi SG': ['iShopChangi SG', 'Ishop Changi Platform'],
 };
 // Display label for each canonical key
 const STORE_LABELS = {
-  'BBF':            'BBF Baby Fair',
-  'EVT':            'EVT Events',
-  'GWC':            'GWC Motherswork Baby & Kids',
-  'HQS':            'HQS Mothers Work Pte Ltd',
+  // ── Offline ──
+  'GWC':            'GWC Store',
+  'TM3':            'TM3 Store',
+  'TAK':            'TAK Store',
+  'BBF':            'BBF Store',
   'OCK':            'OCK Orchard Tangs',
-  'TAK':            'TAK Takashimaya',
-  'TM3':            'TM3 Motherswork Kids',
   'VCT':            'VCT VivoCity Tangs',
-  'Motherswork SG': 'Motherswork SG (Website)',
+  'EVT':            'EVT Events',
+  // ── Online ──
+  'Shopee SG':      'Shopee SG',
+  'Lazada SG':      'Lazada SG',
+  'Amazon SG':      'Amazon SG',
+  'TikTok SG':      'TikTok SG',
+  'iShopChangi SG': 'iShopChangi SG',
+  'Motherswork SG': 'Motherswork SG (Shopify)',
+  'SGRMT - REDMART':'REDMART',
+  'SGGMT Grab Mart':'GrabMart',
+  'SGKRI - KrisShop':'KrisShop',
+  'SGNTU - FairPrice':'FairPrice',
+  'SGSPM SuperMom': 'SuperMom',
+  'SGSSU':          'SGSSU',
+  // ── Wholesale ──
   'Sales':          'Sales (Wholesale)',
-  'SGAMZ Amazon':   'SGAMZ Amazon',
-  'SGGMT Grab Mart':'SGGMT Grab Mart',
-  'SGISC - iShopChangi': 'SGISC - iShopChangi',
-  'SGKRI - KrisShop':    'SGKRI - KrisShop',
-  'SGLAZ - Lazada':      'SGLAZ - Lazada',
-  'SGNTU - FairPrice':   'SGNTU - FairPrice',
-  'SGRMT - REDMART':     'SGRMT - REDMART',
-  'SGSHP - Shopee':      'SGSHP - Shopee',
-  'SGSPM SuperMom':      'SGSPM SuperMom',
-  'SGSSU -SGSSU':        'SGSSU',
-  'SGTTK -TikTok':       'SGTTK - TikTok',
-  'SGWEB - Website':     'SGWEB - Website',
-  // ── Platform channels ──
-  'Shopee SG':      'Shopee Singapore',
-  'Lazada SG':      'Lazada',
-  'Amazon SG':      'Amazon',
-  'TikTok SG':      'TikTok',
-  'iShopChangi SG': 'iShopChangi',
 };
 
 // Returns all BQ values that match a canonical store key
