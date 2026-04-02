@@ -938,17 +938,20 @@ function storeAliases(key) {
 }
 
 // Deduplicates meta.sales_teams into canonical list for dropdown
+// Maps any alias (e.g. "GWC STORE") back to its canonical key (e.g. "GWC")
 function getCanonicalStores(salesTeams) {
   const seen = new Set();
   const result = [];
-  // Prefer full names — skip short codes that have a full-name alias
-  const shortCodes = new Set(Object.keys(STORE_ALIASES));
+  // Build reverse lookup: alias → canonical key
+  const aliasToCanonical = {};
+  for(const [canonical, aliases] of Object.entries(STORE_ALIASES)) {
+    aliases.forEach(a => { aliasToCanonical[a] = canonical; });
+  }
   salesTeams.forEach(s => {
-    // If this is a short code and its full name also exists, skip it
-    if(shortCodes.has(s) && STORE_ALIASES[s].length > 1 && salesTeams.includes(STORE_ALIASES[s][1])) return;
-    if(!seen.has(s)) { seen.add(s); result.push(s); }
+    const canonical = aliasToCanonical[s] || s;
+    if(!seen.has(canonical)) { seen.add(canonical); result.push(canonical); }
   });
-  return result;
+  return result.sort();
 }
 
 // Returns all known aliases for a store key (both short and long)
@@ -1008,7 +1011,7 @@ async function init() {
     populateBrandDropdown(meta.brands);
 
     const tChannel=document.getElementById('tChannel');
-    meta.sales_teams.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;tChannel.appendChild(o);});
+    canonicalStores.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=STORE_LABELS[s]||s;tChannel.appendChild(o);});
 
     const monthsList=document.getElementById('monthsList');
     meta.months.forEach(m=>{const o=document.createElement('option');o.value=m;monthsList.appendChild(o);});
